@@ -1,0 +1,185 @@
+package uz.com.service;
+
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import uz.com.exception.DataHasAlreadyExistsException;
+import uz.com.exception.DataNotAcceptableException;
+import uz.com.exception.DataNotFoundException;
+import uz.com.model.dto.request.ForgotPasswordRequest;
+import uz.com.model.dto.request.LoginRequest;
+import uz.com.model.dto.request.UserCreateRequest;
+import uz.com.model.dto.response.GeneralResponse;
+import uz.com.model.dto.response.JwtResponse;
+import uz.com.model.dto.response.UserResponse;
+import uz.com.model.entity.UserEntity;
+import uz.com.model.entity.Verification;
+import uz.com.model.enums.Gender;
+import uz.com.model.enums.UserRole;
+import uz.com.repository.UserRepository;
+import uz.com.repository.VerificationRepository;
+import uz.com.service.auth.JwtService;
+
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final VerificationRepository verificationRepository;
+    private final JwtService jwtService;
+
+    public GeneralResponse<JwtResponse> save(UserCreateRequest request){
+        checkHasEmailAndPhone(request.getEmail(), request.getPhone());
+        UserEntity user = modelMapper.map(request,UserEntity.class);
+        user.setRole(Set.of(UserRole.USER));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setAddress(request.getAddress());
+        user.setPhone(request.getPhone());
+        user.setFullName(request.getFullName());
+        try{
+        user.setGender(Gender.valueOf(request.getGender().toUpperCase()));
+        } catch (Exception e){
+            throw new DataNotAcceptableException("Wrong input!");
+        }
+        userRepository.save(user);
+        UserResponse userResponse = modelMapper.map(user,UserResponse.class);
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        JwtResponse jwtResponse = JwtResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .userResponse(userResponse)
+                .build();
+        return GeneralResponse.ok("User registered!",jwtResponse);
+
+    }
+
+    public void checkHasEmailAndPhone(String email,String phone){
+        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(email);
+        if (user!=null){
+            throw new DataHasAlreadyExistsException("email not available!");
+        }
+        if (userRepository.findUserEntityByPhone(phone)!=null){
+            throw new DataHasAlreadyExistsException("phone not available!");
+        }
+    }
+
+
+    public GeneralResponse<JwtResponse> login(LoginRequest request){
+        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
+        if (user==null){
+            throw new DataNotFoundException("User did not find!");
+        }
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())){
+            throw new DataNotAcceptableException("Wrong username or password! Try again!");
+        }
+        UserResponse userResponse = modelMapper.map(user,UserResponse.class);
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        JwtResponse jwtResponse = JwtResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .userResponse(userResponse)
+                .build();
+        return GeneralResponse.ok("User signed!",jwtResponse);
+    }
+
+
+
+
+    public GeneralResponse<UserResponse> changeRoleTo (UUID userId,String role, Principal principal){
+        UserRole setRole = UserRole.valueOf(role.toUpperCase());
+        UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(userId);
+        UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        if (user==null){
+            throw new DataNotFoundException("User did not find!");
+        }
+        if (user.getRole().contains(setRole)){
+            throw new DataHasAlreadyExistsException("This role set before!");
+        }
+        user.getRole().add(setRole);
+        user.setChangeRoleBy(principalUser.getId());
+        user.setUpdatedAt(LocalDateTime.now());
+        UserEntity save = userRepository.save(user);
+        UserResponse userResponse = modelMapper.map(save, UserResponse.class);
+
+        return GeneralResponse.ok("Client role added!",userResponse);
+       }
+
+
+
+
+    public GeneralResponse<UserResponse> removeRole(UUID userId, String role, Principal principal){
+        UserRole removeRole = UserRole.valueOf(role.toUpperCase());
+        UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(userId);
+        UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        if (user==null){
+            throw new DataNotFoundException("User did not found!");
+        }
+        if (!user.getRole().contains(removeRole)){
+            throw new DataNotAcceptableException("Role has no this user!");
+        }
+        user.getRole().remove(removeRole);
+        user.setChangeRoleBy(principalUser.getId());
+        user.setUpdatedAt(LocalDateTime.now());
+        UserEntity save = userRepository.save(user);
+        UserResponse userResponse = modelMapper.map(save, UserResponse.class);
+
+        return GeneralResponse.ok("Role removed!",userResponse);
+    }
+
+
+
+    public GeneralResponse<String> forgotPassword(ForgotPasswordRequest request){
+        UserEntity userEntity = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
+        Verification verification =  verificationRepository.findByUserEmailAndCode(userEntity.getId(), request.getCode());
+        if (!verification.getCode().equals(request.getCode()) ||
+                verification.getCreatedAt().plusMinutes(5).isBefore(LocalDateTime.now())){
+            throw new DataNotAcceptableException("Verification code is incorrect or expired! Please, try again later!");
+        }
+        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        verificationRepository.delete(verification);
+        userRepository.save(user);
+        return GeneralResponse.ok("User password changed!","CHANGED");
+    }
+
+
+
+
+    public GeneralResponse<UserResponse> getUserById(UUID id){
+        UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(id);
+        if (user==null){
+            throw new DataNotFoundException("User did not find!");
+        }
+        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+        return GeneralResponse.ok("This is user",userResponse);
+    }
+
+
+
+
+    public GeneralResponse<String> deleteById(UUID id, Principal principal){
+        UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(id);
+        UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        if (user==null){
+            throw new DataNotFoundException("user did not found!");
+        }
+        user.setDeleted(true);
+        user.setDeletedAt(LocalDateTime.now());
+        user.setDeletedBy(principalUser.getId());
+        userRepository.save(user);
+
+        return GeneralResponse.ok("User deleted!", "DELETED");
+    }
+
+}
