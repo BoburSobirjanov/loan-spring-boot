@@ -53,6 +53,4 @@ public class MailSendingService {
         javaMailSender.send(simpleMailMessage);
         return GeneralResponse.ok("verification code sent","SENT");
     }
-
-
 }

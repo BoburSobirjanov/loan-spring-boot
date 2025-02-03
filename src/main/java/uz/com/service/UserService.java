@@ -2,6 +2,8 @@ package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataHasAlreadyExistsException;
@@ -23,6 +25,7 @@ import uz.com.service.auth.JwtService;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -109,6 +112,7 @@ public class UserService {
         user.getRole().add(setRole);
         user.setChangeRoleBy(principalUser.getId());
         user.setUpdatedAt(LocalDateTime.now());
+        user.setCreatedBy(principalUser.getId());
         UserEntity save = userRepository.save(user);
         UserResponse userResponse = modelMapper.map(save, UserResponse.class);
 
@@ -131,6 +135,7 @@ public class UserService {
         user.getRole().remove(removeRole);
         user.setChangeRoleBy(principalUser.getId());
         user.setUpdatedAt(LocalDateTime.now());
+        user.setCreatedBy(principalUser.getId());
         UserEntity save = userRepository.save(user);
         UserResponse userResponse = modelMapper.map(save, UserResponse.class);
 
@@ -180,6 +185,35 @@ public class UserService {
         userRepository.save(user);
 
         return GeneralResponse.ok("User deleted!", "DELETED");
+    }
+
+
+    public Page<UserResponse> getAllUsers(Pageable pageable){
+        Page<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable);
+        if (userEntities==null){
+            throw new DataNotFoundException("Users not found!");
+        }
+
+        return userEntities.map(userEntity -> new UserResponse(userEntity.getId(), userEntity.getFullName(), userEntity.getEmail(), userEntity.getPhone(),
+                userEntity.getAddress(), userEntity.getGender(), userEntity.getRole()));
+    }
+
+
+
+    public GeneralResponse<String> multiDeleteUser(List<String> ids, Principal principal){
+        UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        for (String id : ids) {
+            UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(id));
+            if (user==null){
+                throw new DataNotFoundException("User not found!");
+            }
+            user.setDeleted(true);
+            user.setDeletedAt(LocalDateTime.now());
+            user.setDeletedBy(principalUser.getId());
+            userRepository.save(user);
+        }
+
+        return GeneralResponse.ok("Users deleted!","DELETED");
     }
 
 }

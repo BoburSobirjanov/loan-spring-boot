@@ -24,6 +24,8 @@ public abstract class BaseModel {
     @CreationTimestamp
     LocalDateTime createdAt;
 
+    UUID createdBy;
+
     @UpdateTimestamp
     LocalDateTime updatedAt;
 

@@ -1,7 +1,6 @@
 package uz.com.model.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import uz.com.model.BaseModel;
@@ -19,12 +18,10 @@ import java.math.BigDecimal;
 public class TransactionEntity extends BaseModel {
 
     @Column(nullable = false)
-    @NotBlank(message = "amount is required!")
     BigDecimal amount;
 
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
-    @NotBlank(message = "type is required!")
     TransactionType type;
 
     @ManyToOne
