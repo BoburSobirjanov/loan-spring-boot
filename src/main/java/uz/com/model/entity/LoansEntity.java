@@ -29,7 +29,6 @@ public class LoansEntity extends BaseModel {
     Integer interestRate;
 
     @Enumerated(value = EnumType.STRING)
-    @NotBlank(message = "status is required!")
     LoanStatus status;
 
     @JsonFormat(pattern = "yyyy.MM.dd")

@@ -1,6 +1,9 @@
 package uz.com.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +12,7 @@ import uz.com.model.dto.response.UserResponse;
 import uz.com.service.UserService;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,10 +28,11 @@ public class UserController {
     @PutMapping("/{id}/add-client-role")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> addClientRole(@PathVariable UUID id,
-                                                       @RequestParam String role,
-                                                       Principal principal){
+                                                                       @RequestParam String role,
+                                                                       Principal principal){
         return ResponseEntity.ok(userService.changeRoleTo(id, role, principal));
     }
+
 
 
 
@@ -35,10 +40,11 @@ public class UserController {
     @PutMapping("/{id}/add-manager-role")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> addManagerRole(@PathVariable UUID id,
-                                                                       @RequestParam String role,
-                                                                       Principal principal){
+                                                                        @RequestParam String role,
+                                                                        Principal principal){
         return ResponseEntity.ok(userService.changeRoleTo(id, role, principal));
     }
+
 
 
 
@@ -54,6 +60,7 @@ public class UserController {
 
 
 
+
     @PutMapping("/{id}/remove-client-role")
     @PreAuthorize("hasRole('MANAGER') OR hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> removeClientRole(@PathVariable UUID id,
@@ -61,6 +68,7 @@ public class UserController {
                                                                           Principal principal){
         return ResponseEntity.ok(userService.removeRole(id, role, principal));
     }
+
 
 
 
@@ -74,10 +82,32 @@ public class UserController {
 
 
 
+
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
                                                              Principal principal){
         return ResponseEntity.ok(userService.deleteById(id, principal));
+    }
+
+
+
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<UserResponse>> getAll(@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "10") int size){
+        Pageable pageable = PageRequest.of(page, size);
+
+        return ResponseEntity.ok(userService.getAllUsers(pageable));
+    }
+
+
+
+
+    @DeleteMapping("/multi-delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids, Principal principal){
+        return ResponseEntity.ok(userService.multiDeleteUser(ids, principal));
     }
 
 }
