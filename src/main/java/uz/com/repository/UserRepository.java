@@ -23,4 +23,8 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("select u from users as u where u.isDeleted=false")
     Page<UserEntity> findAllByDeletedFalse(Pageable pageable);
+
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM users u WHERE u.email = :email AND u.phone = :phone AND u.isDeleted = false")
+    Boolean existsUserEntityByEmailAndPhoneAndDeletedIsFalse(String email, String phone);
+
 }

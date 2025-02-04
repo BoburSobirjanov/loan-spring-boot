@@ -15,7 +15,6 @@ public class LoanCreateRequest {
 
     BigDecimal amount;
     Integer interestRate;
-    String status;
     String dueDate;
     String userId;
 

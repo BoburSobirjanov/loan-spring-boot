@@ -12,7 +12,7 @@ import java.util.List;
 
 @Service
 public class AuthenticationService {
-    public  void authenticate(Claims claims, HttpServletRequest request) {
+    public void authenticate(Claims claims, HttpServletRequest request) {
         List<String> authorities = (List<String>) claims.get("authorities");
         String username = claims.getSubject();
         UsernamePasswordAuthenticationToken authenticationToken =
