@@ -10,7 +10,7 @@ import uz.com.model.dto.response.TransactionResponse;
 import uz.com.service.TransactionService;
 
 import java.security.Principal;
-import java.security.PublicKey;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,20 +23,28 @@ public class TransactionController {
 
     @PostMapping("/save")
     public ResponseEntity<GeneralResponse<TransactionResponse>> save(@RequestBody TransactionCreateRequest request,
-                                                                     Principal principal){
+                                                                     Principal principal) {
         return ResponseEntity.ok(transactionService.save(request, principal));
     }
 
 
     @GetMapping("{id}")
-    public ResponseEntity<GeneralResponse<TransactionResponse>> getById( @PathVariable UUID id){
+    public ResponseEntity<GeneralResponse<TransactionResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(transactionService.getById(id));
     }
 
 
     @DeleteMapping("{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id, Principal principal){
+    public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id, Principal principal) {
         return ResponseEntity.ok(transactionService.delete(id, principal));
+    }
+
+
+    @DeleteMapping("/multi-delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids,
+                                                               Principal principal) {
+        return ResponseEntity.ok(transactionService.multiDeleteTransaction(ids, principal));
     }
 }

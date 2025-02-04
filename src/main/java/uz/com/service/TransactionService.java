@@ -19,6 +19,7 @@ import uz.com.repository.UserRepository;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,24 +32,24 @@ public class TransactionService {
     private final ModelMapper modelMapper;
 
 
-    public GeneralResponse<TransactionResponse> save(TransactionCreateRequest request, Principal principal){
+    public GeneralResponse<TransactionResponse> save(TransactionCreateRequest request, Principal principal) {
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         TransactionEntity transactionEntity = modelMapper.map(request, TransactionEntity.class);
         AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(UUID.fromString(request.getAccountId()));
-        if (accounts==null){
+        if (accounts == null) {
             throw new DataNotFoundException("Account not found!");
         }
         transactionEntity.setAccount(accounts);
         try {
             transactionEntity.setType(TransactionType.valueOf(request.getType().toUpperCase()));
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new DataNotAcceptableException("Invalid transaction type!");
         }
-        if (request.getAmount().compareTo(BigDecimal.ZERO)<0){
+        if (request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
             throw new DataNotAcceptableException("Bad request! Action not acceptable! Invalid amount!");
         }
         BigDecimal transactionAmount = accounts.getBalance().subtract(request.getAmount());
-        if (transactionAmount.compareTo(BigDecimal.ZERO)<0){
+        if (transactionAmount.compareTo(BigDecimal.ZERO) < 0) {
             throw new DataNotAcceptableException("Has no enough balance in account! Try again later!");
         }
         transactionEntity.setAmount(request.getAmount());
@@ -58,28 +59,24 @@ public class TransactionService {
         TransactionEntity save = transactionRepository.save(transactionEntity);
         TransactionResponse response = modelMapper.map(save, TransactionResponse.class);
 
-        return GeneralResponse.ok("Transaction created!",response);
+        return GeneralResponse.ok("Transaction created!", response);
     }
 
 
-
-
-    public GeneralResponse<TransactionResponse> getById(UUID id){
+    public GeneralResponse<TransactionResponse> getById(UUID id) {
         TransactionEntity transaction = transactionRepository.findTransactionEntityByIdAndDeletedFalse(id);
-        if (transaction==null){
+        if (transaction == null) {
             throw new DataNotFoundException("Transaction not found!");
         }
         TransactionResponse response = modelMapper.map(transaction, TransactionResponse.class);
-        return GeneralResponse.ok("This is transaction!",response);
+        return GeneralResponse.ok("This is transaction!", response);
     }
 
 
-
-
-    public GeneralResponse<String> delete(UUID id, Principal principal){
+    public GeneralResponse<String> delete(UUID id, Principal principal) {
         TransactionEntity transaction = transactionRepository.findTransactionEntityByIdAndDeletedFalse(id);
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        if (transaction==null){
+        if (transaction == null) {
             throw new DataNotFoundException("Transaction not found!");
         }
         transaction.setDeleted(true);
@@ -87,6 +84,23 @@ public class TransactionService {
         transaction.setDeletedBy(user.getId());
         transactionRepository.save(transaction);
 
-        return GeneralResponse.ok("Transaction deleted!","DELETED");
+        return GeneralResponse.ok("Transaction deleted!", "DELETED");
+    }
+
+
+    public GeneralResponse<String> multiDeleteTransaction(List<String> ids, Principal principal) {
+        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        for (String id : ids) {
+            TransactionEntity transaction = transactionRepository.findTransactionEntityByIdAndDeletedFalse(UUID.fromString(id));
+            if (transaction == null) {
+                throw new DataNotFoundException("Transaction not found!");
+            }
+            transaction.setDeleted(true);
+            transaction.setDeletedAt(LocalDateTime.now());
+            transaction.setDeletedBy(user.getId());
+            transactionRepository.save(transaction);
+        }
+
+        return GeneralResponse.ok("Transactions deleted!", "DELETED");
     }
 }

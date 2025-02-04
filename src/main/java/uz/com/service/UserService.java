@@ -39,22 +39,25 @@ public class UserService {
     private final VerificationRepository verificationRepository;
     private final JwtService jwtService;
 
-    public GeneralResponse<JwtResponse> save(UserCreateRequest request){
-        checkHasEmailAndPhone(request.getEmail(), request.getPhone());
-        UserEntity user = modelMapper.map(request,UserEntity.class);
+    public GeneralResponse<JwtResponse> save(UserCreateRequest request) {
+        boolean b = userRepository.existsUserEntityByEmailAndPhoneAndDeletedIsFalse(request.getEmail(), request.getPhone());
+        if (b){
+            throw new DataHasAlreadyExistsException("User has already exists!");
+        }
+        UserEntity user = modelMapper.map(request, UserEntity.class);
         user.setRole(Set.of(UserRole.USER));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
         user.setAddress(request.getAddress());
         user.setPhone(request.getPhone());
         user.setFullName(request.getFullName());
-        try{
-        user.setGender(Gender.valueOf(request.getGender().toUpperCase()));
-        } catch (Exception e){
+        try {
+            user.setGender(Gender.valueOf(request.getGender().toUpperCase()));
+        } catch (Exception e) {
             throw new DataNotAcceptableException("Wrong input!");
         }
         userRepository.save(user);
-        UserResponse userResponse = modelMapper.map(user,UserResponse.class);
+        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         JwtResponse jwtResponse = JwtResponse.builder()
@@ -62,30 +65,20 @@ public class UserService {
                 .refreshToken(refreshToken)
                 .userResponse(userResponse)
                 .build();
-        return GeneralResponse.ok("User registered!",jwtResponse);
+        return GeneralResponse.ok("User registered!", jwtResponse);
 
     }
 
-    public void checkHasEmailAndPhone(String email,String phone){
-        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(email);
-        if (user!=null){
-            throw new DataHasAlreadyExistsException("email not available!");
-        }
-        if (userRepository.findUserEntityByPhone(phone)!=null){
-            throw new DataHasAlreadyExistsException("phone not available!");
-        }
-    }
 
-
-    public GeneralResponse<JwtResponse> login(LoginRequest request){
+    public GeneralResponse<JwtResponse> login(LoginRequest request) {
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
-        if (user==null){
+        if (user == null) {
             throw new DataNotFoundException("User did not find!");
         }
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())){
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new DataNotAcceptableException("Wrong username or password! Try again!");
         }
-        UserResponse userResponse = modelMapper.map(user,UserResponse.class);
+        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         JwtResponse jwtResponse = JwtResponse.builder()
@@ -93,20 +86,18 @@ public class UserService {
                 .refreshToken(refreshToken)
                 .userResponse(userResponse)
                 .build();
-        return GeneralResponse.ok("User signed!",jwtResponse);
+        return GeneralResponse.ok("User signed!", jwtResponse);
     }
 
 
-
-
-    public GeneralResponse<UserResponse> changeRoleTo (UUID userId,String role, Principal principal){
+    public GeneralResponse<UserResponse> changeRoleTo(UUID userId, String role, Principal principal) {
         UserRole setRole = UserRole.valueOf(role.toUpperCase());
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(userId);
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        if (user==null){
+        if (user == null) {
             throw new DataNotFoundException("User did not find!");
         }
-        if (user.getRole().contains(setRole)){
+        if (user.getRole().contains(setRole)) {
             throw new DataHasAlreadyExistsException("This role set before!");
         }
         user.getRole().add(setRole);
@@ -116,20 +107,18 @@ public class UserService {
         UserEntity save = userRepository.save(user);
         UserResponse userResponse = modelMapper.map(save, UserResponse.class);
 
-        return GeneralResponse.ok("Client role added!",userResponse);
-       }
+        return GeneralResponse.ok("Client role added!", userResponse);
+    }
 
 
-
-
-    public GeneralResponse<UserResponse> removeRole(UUID userId, String role, Principal principal){
+    public GeneralResponse<UserResponse> removeRole(UUID userId, String role, Principal principal) {
         UserRole removeRole = UserRole.valueOf(role.toUpperCase());
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(userId);
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        if (user==null){
+        if (user == null) {
             throw new DataNotFoundException("User did not found!");
         }
-        if (!user.getRole().contains(removeRole)){
+        if (!user.getRole().contains(removeRole)) {
             throw new DataNotAcceptableException("Role has no this user!");
         }
         user.getRole().remove(removeRole);
@@ -139,44 +128,39 @@ public class UserService {
         UserEntity save = userRepository.save(user);
         UserResponse userResponse = modelMapper.map(save, UserResponse.class);
 
-        return GeneralResponse.ok("Role removed!",userResponse);
+        return GeneralResponse.ok("Role removed!", userResponse);
     }
 
 
-
-    public GeneralResponse<String> forgotPassword(ForgotPasswordRequest request){
+    public GeneralResponse<String> forgotPassword(ForgotPasswordRequest request) {
         UserEntity userEntity = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
-        Verification verification =  verificationRepository.findByUserEmailAndCode(userEntity.getId(), request.getCode());
+        Verification verification = verificationRepository.findByUserEmailAndCode(userEntity.getId(), request.getCode());
         if (!verification.getCode().equals(request.getCode()) ||
-                verification.getCreatedAt().plusMinutes(5).isBefore(LocalDateTime.now())){
+                verification.getCreatedAt().plusMinutes(5).isBefore(LocalDateTime.now())) {
             throw new DataNotAcceptableException("Verification code is incorrect or expired! Please, try again later!");
         }
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         verificationRepository.delete(verification);
         userRepository.save(user);
-        return GeneralResponse.ok("User password changed!","CHANGED");
+        return GeneralResponse.ok("User password changed!", "CHANGED");
     }
 
 
-
-
-    public GeneralResponse<UserResponse> getUserById(UUID id){
+    public GeneralResponse<UserResponse> getUserById(UUID id) {
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(id);
-        if (user==null){
+        if (user == null) {
             throw new DataNotFoundException("User did not find!");
         }
         UserResponse userResponse = modelMapper.map(user, UserResponse.class);
-        return GeneralResponse.ok("This is user",userResponse);
+        return GeneralResponse.ok("This is user", userResponse);
     }
 
 
-
-
-    public GeneralResponse<String> deleteById(UUID id, Principal principal){
+    public GeneralResponse<String> deleteById(UUID id, Principal principal) {
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(id);
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        if (user==null){
+        if (user == null) {
             throw new DataNotFoundException("user did not found!");
         }
         user.setDeleted(true);
@@ -188,9 +172,9 @@ public class UserService {
     }
 
 
-    public Page<UserResponse> getAllUsers(Pageable pageable){
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
         Page<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable);
-        if (userEntities==null){
+        if (userEntities == null) {
             throw new DataNotFoundException("Users not found!");
         }
 
@@ -199,12 +183,11 @@ public class UserService {
     }
 
 
-
-    public GeneralResponse<String> multiDeleteUser(List<String> ids, Principal principal){
+    public GeneralResponse<String> multiDeleteUser(List<String> ids, Principal principal) {
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         for (String id : ids) {
             UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(id));
-            if (user==null){
+            if (user == null) {
                 throw new DataNotFoundException("User not found!");
             }
             user.setDeleted(true);
@@ -213,7 +196,16 @@ public class UserService {
             userRepository.save(user);
         }
 
-        return GeneralResponse.ok("Users deleted!","DELETED");
+        return GeneralResponse.ok("Users deleted!", "DELETED");
     }
 
+
+    public GeneralResponse<UserResponse> getByPhone(String number){
+        UserEntity user = userRepository.findUserEntityByPhone(number);
+        if (user==null){
+            throw new DataNotFoundException("User not found!");
+        }
+        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+        return GeneralResponse.ok("This is user!", userResponse);
+    }
 }

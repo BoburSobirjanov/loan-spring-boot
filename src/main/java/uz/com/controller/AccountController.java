@@ -25,32 +25,29 @@ public class AccountController {
     @PostMapping("/save")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<GeneralResponse<AccountResponse>> save(@RequestBody AccountCreateRequest request,
-                                                                 Principal principal){
+                                                                 Principal principal) {
         return ResponseEntity.ok(accountService.save(request, principal));
     }
 
 
-
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENTS')")
-    public ResponseEntity<GeneralResponse<AccountResponse>> getById(@PathVariable UUID id){
+    public ResponseEntity<GeneralResponse<AccountResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(accountService.getById(id));
     }
-
 
 
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
-                                                             Principal principal){
+                                                             Principal principal) {
         return ResponseEntity.ok(accountService.deleteById(id, principal));
     }
 
 
-
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids, Principal principal){
+    public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids, Principal principal) {
         return ResponseEntity.ok(accountService.multiDeleteAccount(ids, principal));
     }
 

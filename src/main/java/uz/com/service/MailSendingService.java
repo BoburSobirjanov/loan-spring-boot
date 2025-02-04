@@ -27,11 +27,11 @@ public class MailSendingService {
     private String sender;
     Random random = new Random();
 
-    public GeneralResponse<String> sendMessage(String email){
+    public GeneralResponse<String> sendMessage(String email) {
 
         int message = 10000000 + random.nextInt(90000000);
         UserEntity userEntity = userRepository.findUserEntityByEmailAndDeletedFalse(email);
-        if (userEntity==null){
+        if (userEntity == null) {
             throw new DataNotAcceptableException("Wrong! Did not sign up use this email!");
         }
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
@@ -39,18 +39,18 @@ public class MailSendingService {
         simpleMailMessage.setTo(email);
         simpleMailMessage.setText("Do not give to others this code. Your verification code: " + message);
         Verification verificationEntity = verificationRepository.findVerificationByTo(userEntity.getId());
-        if (verificationEntity==null){
+        if (verificationEntity == null) {
             Verification verification = new Verification();
             verification.setTo_to(userEntity.getId());
             verification.setCode(message);
             verificationRepository.save(verification);
-            return GeneralResponse.ok("Verification code sent","SENT");
+            return GeneralResponse.ok("Verification code sent", "SENT");
         }
         verificationEntity.setCode(message);
         verificationEntity.setCreatedAt(LocalDateTime.now());
         verificationRepository.save(verificationEntity);
 
         javaMailSender.send(simpleMailMessage);
-        return GeneralResponse.ok("verification code sent","SENT");
+        return GeneralResponse.ok("verification code sent", "SENT");
     }
 }
