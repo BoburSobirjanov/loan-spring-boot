@@ -172,12 +172,17 @@ public class UserService {
     }
 
 
-    public Page<UserResponse> getAllUsers(Pageable pageable) {
+    public Page<UserResponse> getAllUsers(Pageable pageable, String role) {
+        if (role==null){
         Page<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable);
-        if (userEntities == null) {
-            throw new DataNotFoundException("Users not found!");
-        }
+        if (userEntities == null) throw new DataNotFoundException("Users not found!");
 
+        return userEntities.map(userEntity -> new UserResponse(userEntity.getId(), userEntity.getFullName(), userEntity.getEmail(), userEntity.getPhone(),
+                userEntity.getAddress(), userEntity.getGender(), userEntity.getRole()));}
+
+        UserRole userRole = UserRole.valueOf(role.toUpperCase());
+        Page<UserEntity> userEntities = userRepository.findAllByRole(userRole,pageable);
+        if (userEntities==null) throw new DataNotFoundException("Users not found!");
         return userEntities.map(userEntity -> new UserResponse(userEntity.getId(), userEntity.getFullName(), userEntity.getEmail(), userEntity.getPhone(),
                 userEntity.getAddress(), userEntity.getGender(), userEntity.getRole()));
     }

@@ -1,6 +1,9 @@
 package uz.com.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -50,5 +53,24 @@ public class AccountController {
     public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids, Principal principal) {
         return ResponseEntity.ok(accountService.multiDeleteAccount(ids, principal));
     }
+
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<AccountResponse>> getAllAcc(@RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(required = false) String type){
+        Pageable pageable = PageRequest.of(page,size);
+        return ResponseEntity.ok(accountService.getAllAccount(pageable,type));
+    }
+
+
+
+    @GetMapping("/get-user-account")
+    public ResponseEntity<GeneralResponse<AccountResponse>> getUSerAccount(Principal principal,
+                                                                           @RequestParam(required = false) UUID userId){
+        return ResponseEntity.ok(accountService.getUserAccount(principal, userId));
+    }
+
 
 }
