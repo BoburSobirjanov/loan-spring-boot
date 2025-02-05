@@ -2,12 +2,15 @@ package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
 import uz.com.model.dto.request.AccountCreateRequest;
 import uz.com.model.dto.response.AccountResponse;
 import uz.com.model.dto.response.GeneralResponse;
+import uz.com.model.dto.response.UserResponse;
 import uz.com.model.entity.AccountsEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.AccountType;
@@ -99,5 +102,38 @@ public class AccountService {
         }
 
         return GeneralResponse.ok("Accounts deleted!", "DELETED");
+    }
+
+
+    public Page<AccountResponse> getAllAccount(Pageable pageable, String accType){
+        if (accType==null){
+            Page<AccountsEntity> accountsEntities = accountRepository.findAllAccountEntityAndDeletedFalse(pageable);
+            if (accountsEntities==null) throw new DataNotFoundException("Accounts not found!");
+
+            return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(),accountsEntity.getBalance(),
+                    accountsEntity.getType(),accountsEntity.getInterestRate(),modelMapper.map(accountsEntity.getUser(), UserResponse.class)));
+        }
+        AccountType type = AccountType.valueOf(accType.toUpperCase());
+        Page<AccountsEntity> accountsEntities = accountRepository.findAllByTypeAndDeletedIsFalse(type,pageable);
+        if (accountsEntities==null) throw new DataNotFoundException("Accounts not found!");
+
+        return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(),accountsEntity.getBalance(),
+                accountsEntity.getType(),accountsEntity.getInterestRate(),modelMapper.map(accountsEntity.getUser(), UserResponse.class)));
+    }
+
+
+    public GeneralResponse<AccountResponse> getUserAccount(Principal principal, UUID userId){
+        UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(userId);
+        if (principalUser!=null){
+            AccountsEntity accounts = accountRepository.findAccountsEntityByUser(principalUser);
+            if (accounts==null) throw new DataNotFoundException("Account not found!");
+            AccountResponse response = modelMapper.map(accounts, AccountResponse.class);
+            return GeneralResponse.ok("This is account!",response);
+        }
+        AccountsEntity accounts = accountRepository.findAccountsEntityByUser(user);
+        if (accounts==null) throw new DataNotFoundException("Account not found!");
+        AccountResponse response = modelMapper.map(accounts, AccountResponse.class);
+        return GeneralResponse.ok("This is account!",response);
     }
 }

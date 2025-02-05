@@ -2,10 +2,13 @@ package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
 import uz.com.model.dto.request.TransactionCreateRequest;
+import uz.com.model.dto.response.AccountResponse;
 import uz.com.model.dto.response.GeneralResponse;
 import uz.com.model.dto.response.TransactionResponse;
 import uz.com.model.entity.AccountsEntity;
@@ -102,5 +105,28 @@ public class TransactionService {
         }
 
         return GeneralResponse.ok("Transactions deleted!", "DELETED");
+    }
+
+
+
+    public Page<TransactionResponse> getAllTransaction(Pageable pageable,UUID accountId, String type){
+        if (accountId==null && type==null){
+            Page<TransactionEntity> transactionEntities = transactionRepository.findAllByDeletedIsFalse(pageable);
+            if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
+        return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
+        transactionEntity.getAmount(),transactionEntity.getType(),modelMapper.map(transactionEntity.getAccount(), AccountResponse.class)));
+        }
+        if (accountId==null){
+            TransactionType transactionType = TransactionType.valueOf(type.toUpperCase());
+            Page<TransactionEntity> transactionEntities = transactionRepository.findAllByTypeAndDeletedIsFalse(pageable,transactionType);
+            if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
+            return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
+                    transactionEntity.getAmount(),transactionEntity.getType(),modelMapper.map(transactionEntity.getAccount(), AccountResponse.class)));
+        }
+            AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(accountId);
+            Page<TransactionEntity> transactionEntities = transactionRepository.findAllByAccountAndDeletedIsFalse(accounts,pageable);
+            if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
+            return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
+            transactionEntity.getAmount(),transactionEntity.getType(),modelMapper.map(transactionEntity.getAccount(), AccountResponse.class)));
     }
 }

@@ -1,6 +1,9 @@
 package uz.com.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -46,5 +49,15 @@ public class TransactionController {
     public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids,
                                                                Principal principal) {
         return ResponseEntity.ok(transactionService.multiDeleteTransaction(ids, principal));
+    }
+
+    @GetMapping("/get-all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<TransactionResponse>> getAll(@RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size,
+                                                            @RequestParam(required = false) UUID accountId,
+                                                            @RequestParam(required = false) String type){
+        Pageable pageable = PageRequest.of(page,size);
+        return ResponseEntity.ok(transactionService.getAllTransaction(pageable,accountId,type));
     }
 }

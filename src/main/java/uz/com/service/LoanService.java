@@ -2,12 +2,15 @@ package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
 import uz.com.model.dto.request.LoanCreateRequest;
 import uz.com.model.dto.response.GeneralResponse;
 import uz.com.model.dto.response.LoanResponse;
+import uz.com.model.dto.response.UserResponse;
 import uz.com.model.entity.LoansEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.LoanStatus;
@@ -132,5 +135,33 @@ public class LoanService {
             loansRepository.save(loans);
         }
         return GeneralResponse.ok("Loans deleted!", "DELETED");
+    }
+
+
+    public Page<LoanResponse> getAllLoans(Pageable pageable,String status){
+        if (status==null){
+        Page<LoansEntity> loansEntities = loansRepository.findAllLoansEntity(pageable);
+        if (loansEntities==null) throw new DataNotFoundException("Loans not found!");
+        return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(),loansEntity.getAmount(), loansEntity.getInterestRate(),
+                loansEntity.getStatus(),loansEntity.getDueDate(),modelMapper.map(loansEntity.getUser(), UserResponse.class)));
+        }
+        LoanStatus loanStatus = LoanStatus.valueOf(status.toUpperCase());
+        Page<LoansEntity> loansEntities = loansRepository.findLoansEntityByStatusAndDeletedIsFalse(loanStatus,pageable);
+        if (loansEntities==null) throw new DataNotFoundException("Loans not found!");
+        return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(),loansEntity.getAmount(), loansEntity.getInterestRate(),
+                loansEntity.getStatus(),loansEntity.getDueDate(),modelMapper.map(loansEntity.getUser(), UserResponse.class)));
+    }
+
+
+
+
+    public Page<LoanResponse> getMyLoans(Pageable pageable , Principal principal){
+        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        Page<LoansEntity> loansEntities = loansRepository.findAllByUserAndDeletedIsFalse(user,pageable);
+        if (loansEntities==null){
+            throw new DataNotFoundException("Loans not found!");
+        }
+        return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(),loansEntity.getAmount(), loansEntity.getInterestRate(),
+                loansEntity.getStatus(),loansEntity.getDueDate(),modelMapper.map(user, UserResponse.class)));
     }
 }
