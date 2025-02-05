@@ -77,9 +77,9 @@ public class AuthController {
 
 
 
-    @Operation(summary = "Forgot password", description = "Sends a password reset link to the user's email")
+    @Operation(summary = "Forgot password", description = "Sends a password reset code to the user's email")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Password reset link sent"),
+            @ApiResponse(responseCode = "200", description = "Password reset code sent"),
             @ApiResponse(responseCode = "404", description = "User not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
