@@ -1,5 +1,6 @@
 package uz.com.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +24,7 @@ public class UserController {
     private final UserService userService;
 
 
+    @Operation(summary = "Add role", description = "Add client role to user by managers or admins")
     @PutMapping("/{id}/add-client-role")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> addClientRole(@PathVariable UUID id,
@@ -31,7 +33,7 @@ public class UserController {
         return ResponseEntity.ok(userService.changeRoleTo(id, role, principal));
     }
 
-
+    @Operation(summary = "Add role",description = "Add manager role to users by admins")
     @PutMapping("/{id}/add-manager-role")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> addManagerRole(@PathVariable UUID id,
@@ -41,6 +43,7 @@ public class UserController {
     }
 
 
+    @Operation(summary = "Remove role",description = "Remove manager role from users by admins")
     @PutMapping("/{id}/remove-manager-role")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> removeManagerRole(@PathVariable UUID id,
@@ -50,6 +53,7 @@ public class UserController {
     }
 
 
+    @Operation(summary = "Remove role",description = "Remove client role from users by admins")
     @PutMapping("/{id}/remove-client-role")
     @PreAuthorize("hasRole('MANAGER') OR hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> removeClientRole(@PathVariable UUID id,
@@ -59,6 +63,7 @@ public class UserController {
     }
 
 
+    @Operation(summary = "Get user", description = "Get user by id by admins or managers")
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> getById(@PathVariable UUID id) {
@@ -66,13 +71,16 @@ public class UserController {
     }
 
 
+    @Operation(summary = "Delete user",description = "Delete user by id by admins")
     @DeleteMapping("/{id}/delete")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
                                                              Principal principal) {
         return ResponseEntity.ok(userService.deleteById(id, principal));
     }
 
 
+    @Operation(summary = "Get all user", description = "Get all default users or get all by role by admins")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponse>> getAll(@RequestParam(defaultValue = "0") int page,
@@ -84,6 +92,7 @@ public class UserController {
     }
 
 
+    @Operation(summary = "Multi delete", description = "Multi delete users by admins")
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids, Principal principal) {
@@ -91,6 +100,7 @@ public class UserController {
     }
 
 
+    @Operation(summary = "Get by phone", description = "Get users through their phone number by admins or managers")
     @GetMapping("/get-by-number")
     @PreAuthorize("hasRole('ADMIN' or hasRole('MANAGER'))")
     public ResponseEntity<GeneralResponse<UserResponse>> getByPhone(@RequestParam String number){

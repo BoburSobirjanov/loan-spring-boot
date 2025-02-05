@@ -1,5 +1,6 @@
 package uz.com.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +26,7 @@ public class AccountController {
     private final AccountService accountService;
 
 
+    @Operation(summary = "Save account",description = "Save account by managers for clients")
     @PostMapping("/save")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<GeneralResponse<AccountResponse>> save(@RequestBody AccountCreateRequest request,
@@ -33,6 +35,7 @@ public class AccountController {
     }
 
 
+    @Operation(summary = "Get account",description = "Get account through id by users")
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENTS')")
     public ResponseEntity<GeneralResponse<AccountResponse>> getById(@PathVariable UUID id) {
@@ -40,6 +43,7 @@ public class AccountController {
     }
 
 
+    @Operation(summary = "Delete account", description = "Delete account through id by admins")
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
@@ -48,6 +52,7 @@ public class AccountController {
     }
 
 
+    @Operation(summary = "Multi delete",description = "Multi delete accounts through ids by admins")
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids, Principal principal) {
@@ -55,6 +60,7 @@ public class AccountController {
     }
 
 
+    @Operation(summary = "Get all account",description = "Get all default accounts or get all accounts sort by type by admins")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AccountResponse>> getAllAcc(@RequestParam(defaultValue = "0") int page,
@@ -66,6 +72,7 @@ public class AccountController {
 
 
 
+    @Operation(summary = "Get user account",description = "Get principal user's account or get account by userId")
     @GetMapping("/get-user-account")
     public ResponseEntity<GeneralResponse<AccountResponse>> getUSerAccount(Principal principal,
                                                                            @RequestParam(required = false) UUID userId){

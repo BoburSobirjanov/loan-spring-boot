@@ -1,5 +1,6 @@
 package uz.com.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ public class TransactionController {
     private final TransactionService transactionService;
 
 
+    @Operation(summary = "Save transaction", description = "Save transaction by users")
     @PostMapping("/save")
     public ResponseEntity<GeneralResponse<TransactionResponse>> save(@RequestBody TransactionCreateRequest request,
                                                                      Principal principal) {
@@ -31,12 +33,14 @@ public class TransactionController {
     }
 
 
+    @Operation(summary = "Get by id", description = "Get transaction through id by users")
     @GetMapping("{id}")
     public ResponseEntity<GeneralResponse<TransactionResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(transactionService.getById(id));
     }
 
 
+    @Operation(summary = "Delete transaction",description = "Delete transaction through id by admins")
     @DeleteMapping("{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id, Principal principal) {
@@ -44,6 +48,7 @@ public class TransactionController {
     }
 
 
+    @Operation(summary = "Multi delete",description = "Multi delete transactions through id by admins")
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids,
@@ -51,6 +56,8 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.multiDeleteTransaction(ids, principal));
     }
 
+
+    @Operation(summary = "Get all", description = "Get all default transactions or get all sort by account and type")
     @GetMapping("/get-all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<TransactionResponse>> getAll(@RequestParam(defaultValue = "0") int page,
