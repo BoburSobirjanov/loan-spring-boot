@@ -1,14 +1,14 @@
 package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
+import uz.com.mapper.AccountMapper;
+import uz.com.mapper.TransactionMapper;
 import uz.com.model.dto.request.TransactionCreateRequest;
-import uz.com.model.dto.response.AccountResponse;
 import uz.com.model.dto.response.GeneralResponse;
 import uz.com.model.dto.response.TransactionResponse;
 import uz.com.model.entity.AccountsEntity;
@@ -33,13 +33,14 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
+    private final TransactionMapper transactionMapper;
+    private final AccountMapper accountMapper;
 
 
     public GeneralResponse<TransactionResponse> save(TransactionCreateRequest request, Principal principal) {
         TransactionType type = TransactionType.valueOf(request.getType().toUpperCase());
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        TransactionEntity transactionEntity = modelMapper.map(request, TransactionEntity.class);
+        TransactionEntity transactionEntity = transactionMapper.toEntity(request);
         AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(UUID.fromString(request.getAccountId()));
         if (accounts == null) {
             throw new DataNotFoundException("Account not found!");
@@ -71,7 +72,7 @@ public class TransactionService {
         accountRepository.save(accounts);
         transactionEntity.setCreatedBy(user.getId());
         TransactionEntity save = transactionRepository.save(transactionEntity);
-        TransactionResponse response = modelMapper.map(save, TransactionResponse.class);
+        TransactionResponse response = transactionMapper.toResponse(save);
 
         return GeneralResponse.ok("Transaction created!", response);
     }
@@ -82,7 +83,7 @@ public class TransactionService {
         if (transaction == null) {
             throw new DataNotFoundException("Transaction not found!");
         }
-        TransactionResponse response = modelMapper.map(transaction, TransactionResponse.class);
+        TransactionResponse response = transactionMapper.toResponse(transaction);
         return GeneralResponse.ok("This is transaction!", response);
     }
 
@@ -142,6 +143,6 @@ public class TransactionService {
 
     private Page<TransactionResponse> getMap(Page<TransactionEntity> transactionEntities) {
         return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
-                transactionEntity.getAmount(), transactionEntity.getType(), modelMapper.map(transactionEntity.getAccount(), AccountResponse.class)));
+                transactionEntity.getAmount(), transactionEntity.getType(), accountMapper.toResponse(transactionEntity.getAccount())));
     }
 }

@@ -1,16 +1,16 @@
 package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
+import uz.com.mapper.LoanMapper;
+import uz.com.mapper.UserMapper;
 import uz.com.model.dto.request.LoanCreateRequest;
 import uz.com.model.dto.response.GeneralResponse;
 import uz.com.model.dto.response.LoanResponse;
-import uz.com.model.dto.response.UserResponse;
 import uz.com.model.entity.LoansEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.LoanStatus;
@@ -32,12 +32,13 @@ public class LoanService {
 
     private final LoansRepository loansRepository;
     private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
+    private final LoanMapper loanMapper;
+    private final UserMapper userMapper;
 
 
     public GeneralResponse<LoanResponse> save(LoanCreateRequest request, Principal principal) {
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        LoansEntity loans = modelMapper.map(request, LoansEntity.class);
+        LoansEntity loans = loanMapper.toEntity(request);
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(request.getUserId()));
         if (user == null) {
             throw new DataNotFoundException("User not found!");
@@ -63,7 +64,7 @@ public class LoanService {
         }
         loans.setDueDate(localDate);
         LoansEntity save = loansRepository.save(loans);
-        LoanResponse loanResponse = modelMapper.map(save, LoanResponse.class);
+        LoanResponse loanResponse = loanMapper.toResponse(save);
 
         return GeneralResponse.ok("Loan created!", loanResponse);
     }
@@ -75,7 +76,7 @@ public class LoanService {
         if (loans==null){
             throw new DataNotFoundException("Loan not found!");
         }
-        LoanResponse loanResponse = modelMapper.map(loans, LoanResponse.class);
+        LoanResponse loanResponse = loanMapper.toResponse(loans);
 
         return GeneralResponse.ok("This is loan!",loanResponse);
     }
@@ -113,7 +114,7 @@ public class LoanService {
             throw new DataNotAcceptableException("Invalid status!");
         }
 
-        LoanResponse response = modelMapper.map(loans, LoanResponse.class);
+        LoanResponse response = loanMapper.toResponse(loans);
         return GeneralResponse.ok("Status changed!", response);
     }
 
@@ -165,6 +166,6 @@ public class LoanService {
 
     public Page<LoanResponse> loanResponsePage(Page<LoansEntity> loansEntities){
         return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(),loansEntity.getAmount(), loansEntity.getInterestRate(),
-                loansEntity.getStatus(),loansEntity.getDueDate(),modelMapper.map(loansEntity.getUser(), UserResponse.class)));
+                loansEntity.getStatus(),loansEntity.getDueDate(),userMapper.toResponse(loansEntity.getUser())));
     }
 }
