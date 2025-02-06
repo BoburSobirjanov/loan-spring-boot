@@ -9,6 +9,7 @@ import uz.com.model.entity.AccountsEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.AccountType;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -24,5 +25,8 @@ public interface AccountRepository extends JpaRepository<AccountsEntity, UUID> {
     Page<AccountsEntity> findAllByTypeAndDeletedIsFalse(AccountType type, Pageable pageable);
 
     @Query("select a from accounts as a where a.isDeleted=false and a.user=?1")
-    AccountsEntity findAccountsEntityByUser(UserEntity user);
+    Page<AccountsEntity> findAccountsEntityByUser(UserEntity user, Pageable pageable);
+
+    @Query("select a from accounts as a where a.isDeleted=false and a.user=?1")
+    List<AccountsEntity> findAllByUserAndDeletedIsFalse(UserEntity user);
 }

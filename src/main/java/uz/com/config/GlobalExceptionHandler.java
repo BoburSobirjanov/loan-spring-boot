@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import uz.com.exception.DataHasAlreadyExistsException;
+import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
 import uz.com.model.dto.response.GeneralResponse;
 
@@ -43,6 +44,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = DataNotFoundException.class)
     public ResponseEntity<GeneralResponse<String>> dataNotFoundException(DataNotFoundException e){
         return ResponseEntity.status(404).body(GeneralResponse.error(e.getMessage()));
+    }
+
+
+    @ExceptionHandler(value = DataNotAcceptableException.class)
+    public ResponseEntity<GeneralResponse<String>> dataNotAcceptableException(DataNotAcceptableException e){
+        return ResponseEntity.status(406).body(GeneralResponse.error(e.getMessage()));
     }
 
 }

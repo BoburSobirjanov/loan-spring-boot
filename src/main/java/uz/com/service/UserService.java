@@ -213,4 +213,32 @@ public class UserService {
         UserResponse userResponse = modelMapper.map(user, UserResponse.class);
         return GeneralResponse.ok("This is user!", userResponse);
     }
+
+
+    public GeneralResponse<UserResponse> update(UUID id, UserCreateRequest request){
+        UserEntity userEntity = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
+        UserEntity userByPhone= userRepository.findUserEntityByPhone(request.getPhone());
+        UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(id);
+        if (userEntity!=user && userEntity!=null){
+            throw new DataHasAlreadyExistsException("Email has already exists!");
+        }
+        if (userEntity!=user && userByPhone!=null){
+            throw new DataHasAlreadyExistsException("Phone has already exists!");
+        }
+        if (user==null) throw new DataNotFoundException("User not found!");
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setAddress(request.getAddress());
+        user.setPhone(request.getPhone());
+        user.setFullName(request.getFullName());
+        try {
+            user.setGender(Gender.valueOf(request.getGender().toUpperCase()));
+        } catch (Exception e) {
+            throw new DataNotAcceptableException("Wrong input!");
+        }
+        UserEntity save = userRepository.save(user);
+        UserResponse response = modelMapper.map(save, UserResponse.class);
+
+        return GeneralResponse.ok("User updated!", response);
+    }
 }

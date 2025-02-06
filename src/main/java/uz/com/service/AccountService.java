@@ -5,6 +5,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import uz.com.exception.DataHasAlreadyExistsException;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
 import uz.com.model.dto.request.AccountCreateRequest;
@@ -34,8 +35,14 @@ public class AccountService {
 
 
     public GeneralResponse<AccountResponse> save(AccountCreateRequest request, Principal principal) {
+        AccountType type = AccountType.valueOf(request.getType().toUpperCase());
         AccountsEntity accounts = modelMapper.map(request, AccountsEntity.class);
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(request.getUserId()));
+        List<AccountsEntity> accountsEntities = accountRepository.findAllByUserAndDeletedIsFalse(user);
+        for (AccountsEntity accountsEntity: accountsEntities) {
+            if (accountsEntity.getType().equals(type))
+                throw new DataHasAlreadyExistsException("This type account has already exists in this user!");
+        }
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         if (user == null || !user.getRole().contains(UserRole.CLIENT)) {
             throw new DataNotAcceptableException("Bad request! Something error! Try again later! This user is not client!");
@@ -45,7 +52,7 @@ public class AccountService {
         }
         accounts.setInterestRate(request.getInterestRate());
         try {
-            accounts.setType(AccountType.valueOf(request.getType().toUpperCase()));
+            accounts.setType(type);
         } catch (Exception e) {
             throw new DataNotAcceptableException("Wrong account type!");
         }
@@ -110,30 +117,32 @@ public class AccountService {
             Page<AccountsEntity> accountsEntities = accountRepository.findAllAccountEntityAndDeletedFalse(pageable);
             if (accountsEntities==null) throw new DataNotFoundException("Accounts not found!");
 
-            return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(),accountsEntity.getBalance(),
-                    accountsEntity.getType(),accountsEntity.getInterestRate(),modelMapper.map(accountsEntity.getUser(), UserResponse.class)));
+            return accPageResponse(accountsEntities);
         }
         AccountType type = AccountType.valueOf(accType.toUpperCase());
         Page<AccountsEntity> accountsEntities = accountRepository.findAllByTypeAndDeletedIsFalse(type,pageable);
         if (accountsEntities==null) throw new DataNotFoundException("Accounts not found!");
 
-        return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(),accountsEntity.getBalance(),
-                accountsEntity.getType(),accountsEntity.getInterestRate(),modelMapper.map(accountsEntity.getUser(), UserResponse.class)));
+        return accPageResponse(accountsEntities);
     }
 
 
-    public GeneralResponse<AccountResponse> getUserAccount(Principal principal, UUID userId){
-        UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(userId);
-        if (principalUser!=null){
-            AccountsEntity accounts = accountRepository.findAccountsEntityByUser(principalUser);
-            if (accounts==null) throw new DataNotFoundException("Account not found!");
-            AccountResponse response = modelMapper.map(accounts, AccountResponse.class);
-            return GeneralResponse.ok("This is account!",response);
+    public Page<AccountResponse> getUserAccount(Principal principal, UUID userId, Pageable pageable) {
+        if (userId != null) {
+            UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(userId);
+            Page<AccountsEntity> accounts = accountRepository.findAccountsEntityByUser(user, pageable);
+            if (accounts == null) throw new DataNotFoundException("Account not found!");
+            return accPageResponse(accounts);
         }
-        AccountsEntity accounts = accountRepository.findAccountsEntityByUser(user);
-        if (accounts==null) throw new DataNotFoundException("Account not found!");
-        AccountResponse response = modelMapper.map(accounts, AccountResponse.class);
-        return GeneralResponse.ok("This is account!",response);
+        UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+            Page<AccountsEntity> accounts = accountRepository.findAccountsEntityByUser(principalUser, pageable);
+            if (accounts == null) throw new DataNotFoundException("Account not found!");
+            return accPageResponse(accounts);
+    }
+
+
+    public Page<AccountResponse> accPageResponse(Page<AccountsEntity> accountsEntities){
+        return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(),accountsEntity.getBalance(),
+                accountsEntity.getType(),accountsEntity.getInterestRate(),modelMapper.map(accountsEntity.getUser(), UserResponse.class)));
     }
 }
