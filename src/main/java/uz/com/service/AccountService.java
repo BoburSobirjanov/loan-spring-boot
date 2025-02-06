@@ -1,17 +1,17 @@
 package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataHasAlreadyExistsException;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
+import uz.com.mapper.AccountMapper;
+import uz.com.mapper.UserMapper;
 import uz.com.model.dto.request.AccountCreateRequest;
 import uz.com.model.dto.response.AccountResponse;
 import uz.com.model.dto.response.GeneralResponse;
-import uz.com.model.dto.response.UserResponse;
 import uz.com.model.entity.AccountsEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.AccountType;
@@ -31,12 +31,13 @@ public class AccountService {
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
-    private final ModelMapper modelMapper;
+    private final AccountMapper accountMapper;
+    private final UserMapper userMapper;
 
 
     public GeneralResponse<AccountResponse> save(AccountCreateRequest request, Principal principal) {
         AccountType type = AccountType.valueOf(request.getType().toUpperCase());
-        AccountsEntity accounts = modelMapper.map(request, AccountsEntity.class);
+        AccountsEntity accounts = accountMapper.toEntity(request);
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(request.getUserId()));
         List<AccountsEntity> accountsEntities = accountRepository.findAllByUserAndDeletedIsFalse(user);
         for (AccountsEntity accountsEntity: accountsEntities) {
@@ -63,7 +64,7 @@ public class AccountService {
         }
         accounts.setBalance(request.getBalance());
         AccountsEntity save = accountRepository.save(accounts);
-        AccountResponse accountResponse = modelMapper.map(save, AccountResponse.class);
+        AccountResponse accountResponse = accountMapper.toResponse(save);
 
         return GeneralResponse.ok("Account created!", accountResponse);
     }
@@ -74,7 +75,7 @@ public class AccountService {
         if (accounts == null) {
             throw new DataNotFoundException("Account did not find!");
         }
-        AccountResponse accountResponse = modelMapper.map(accounts, AccountResponse.class);
+        AccountResponse accountResponse = accountMapper.toResponse(accounts);
 
         return GeneralResponse.ok("This is account!", accountResponse);
     }
@@ -143,6 +144,6 @@ public class AccountService {
 
     public Page<AccountResponse> accPageResponse(Page<AccountsEntity> accountsEntities){
         return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(),accountsEntity.getBalance(),
-                accountsEntity.getType(),accountsEntity.getInterestRate(),modelMapper.map(accountsEntity.getUser(), UserResponse.class)));
+                accountsEntity.getType(),accountsEntity.getInterestRate(),userMapper.toResponse(accountsEntity.getUser())));
     }
 }

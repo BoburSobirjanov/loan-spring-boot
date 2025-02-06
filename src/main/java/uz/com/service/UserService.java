@@ -1,7 +1,6 @@
 package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Service;
 import uz.com.exception.DataHasAlreadyExistsException;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
+import uz.com.mapper.UserMapper;
 import uz.com.model.dto.request.ForgotPasswordRequest;
 import uz.com.model.dto.request.LoginRequest;
 import uz.com.model.dto.request.UserCreateRequest;
@@ -34,17 +34,17 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final VerificationRepository verificationRepository;
     private final JwtService jwtService;
+    private final UserMapper userMapper;
 
     public GeneralResponse<JwtResponse> save(UserCreateRequest request) {
         boolean b = userRepository.existsUserEntityByEmailAndPhoneAndDeletedIsFalse(request.getEmail(), request.getPhone());
         if (b){
             throw new DataHasAlreadyExistsException("User has already exists!");
         }
-        UserEntity user = modelMapper.map(request, UserEntity.class);
+        UserEntity user = userMapper.toEntity(request);
         user.setRole(Set.of(UserRole.USER));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
@@ -57,7 +57,7 @@ public class UserService {
             throw new DataNotAcceptableException("Wrong input!");
         }
         userRepository.save(user);
-        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+        UserResponse userResponse = userMapper.toResponse(user);
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         JwtResponse jwtResponse = JwtResponse.builder()
@@ -78,7 +78,7 @@ public class UserService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new DataNotAcceptableException("Wrong username or password! Try again!");
         }
-        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+        UserResponse userResponse = userMapper.toResponse(user);
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         JwtResponse jwtResponse = JwtResponse.builder()
@@ -105,7 +105,7 @@ public class UserService {
         user.setUpdatedAt(LocalDateTime.now());
         user.setCreatedBy(principalUser.getId());
         UserEntity save = userRepository.save(user);
-        UserResponse userResponse = modelMapper.map(save, UserResponse.class);
+        UserResponse userResponse = userMapper.toResponse(save);
 
         return GeneralResponse.ok("Client role added!", userResponse);
     }
@@ -126,7 +126,7 @@ public class UserService {
         user.setUpdatedAt(LocalDateTime.now());
         user.setCreatedBy(principalUser.getId());
         UserEntity save = userRepository.save(user);
-        UserResponse userResponse = modelMapper.map(save, UserResponse.class);
+        UserResponse userResponse = userMapper.toResponse(save);
 
         return GeneralResponse.ok("Role removed!", userResponse);
     }
@@ -152,7 +152,7 @@ public class UserService {
         if (user == null) {
             throw new DataNotFoundException("User did not find!");
         }
-        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+        UserResponse userResponse = userMapper.toResponse(user);
         return GeneralResponse.ok("This is user", userResponse);
     }
 
@@ -210,7 +210,7 @@ public class UserService {
         if (user==null){
             throw new DataNotFoundException("User not found!");
         }
-        UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+        UserResponse userResponse = userMapper.toResponse(user);
         return GeneralResponse.ok("This is user!", userResponse);
     }
 
@@ -237,7 +237,7 @@ public class UserService {
             throw new DataNotAcceptableException("Wrong input!");
         }
         UserEntity save = userRepository.save(user);
-        UserResponse response = modelMapper.map(save, UserResponse.class);
+        UserResponse response = userMapper.toResponse(save);
 
         return GeneralResponse.ok("User updated!", response);
     }

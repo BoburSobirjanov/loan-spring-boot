@@ -20,7 +20,6 @@ import java.util.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserEntity extends BaseModel implements UserDetails {
 
