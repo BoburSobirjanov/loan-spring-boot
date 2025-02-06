@@ -1,6 +1,7 @@
 package uz.com.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Account controller APIs for managing", description = "Account Controller")
 @RequestMapping("/api/v1/accounts")
 public class AccountController {
 
@@ -74,9 +76,12 @@ public class AccountController {
 
     @Operation(summary = "Get user account",description = "Get principal user's account or get account by userId")
     @GetMapping("/get-user-account")
-    public ResponseEntity<GeneralResponse<AccountResponse>> getUSerAccount(Principal principal,
-                                                                           @RequestParam(required = false) UUID userId){
-        return ResponseEntity.ok(accountService.getUserAccount(principal, userId));
+    public ResponseEntity<Page<AccountResponse>> getUSerAccount(Principal principal,
+                                                                @RequestParam(required = false) UUID userId,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "10") int size){
+        Pageable pageable = PageRequest.of(page,size);
+        return ResponseEntity.ok(accountService.getUserAccount(principal, userId, pageable));
     }
 
 

@@ -11,6 +11,15 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuditCreateRequest {
 
-    String action;
+    String httpMethod;
+
+    String apiEndpoint;
+
+    String request;
+
+    String response;
+
+    int statusCode;
+
     String userId;
 }

@@ -1,6 +1,7 @@
 package uz.com.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Transaction controller APIs for managing transactions", description = "Transaction Controller")
 @RequestMapping("/api/v1/transactions")
 public class TransactionController {
 

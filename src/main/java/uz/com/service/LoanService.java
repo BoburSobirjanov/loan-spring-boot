@@ -88,7 +88,7 @@ public class LoanService {
             throw new DataNotFoundException("Loan not found!");
         }
         if (loans.getStatus().equals(LoanStatus.ACTIVE) || loans.getStatus().equals(LoanStatus.FREEZE)){
-            throw new DataNotAcceptableException("Can not delete loan! Because loan is ACTIVE now!");
+            throw new DataNotAcceptableException("Can not delete loan! Because loan is not COMPLETED!");
         }
         loans.setDeleted(true);
         loans.setDeletedAt(LocalDateTime.now());
@@ -127,7 +127,7 @@ public class LoanService {
                 throw new DataNotFoundException("Loan not found!");
             }
             if (loans.getStatus().equals(LoanStatus.ACTIVE) || loans.getStatus().equals(LoanStatus.FREEZE)){
-                throw new DataNotAcceptableException("Complete loan before!");
+                throw new DataNotAcceptableException("Can not delete loans! Because loans are not COMPLETED!");
             }
             loans.setDeleted(true);
             loans.setDeletedBy(user.getId());
@@ -142,14 +142,12 @@ public class LoanService {
         if (status==null){
         Page<LoansEntity> loansEntities = loansRepository.findAllLoansEntity(pageable);
         if (loansEntities==null) throw new DataNotFoundException("Loans not found!");
-        return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(),loansEntity.getAmount(), loansEntity.getInterestRate(),
-                loansEntity.getStatus(),loansEntity.getDueDate(),modelMapper.map(loansEntity.getUser(), UserResponse.class)));
+        return loanResponsePage(loansEntities);
         }
         LoanStatus loanStatus = LoanStatus.valueOf(status.toUpperCase());
         Page<LoansEntity> loansEntities = loansRepository.findLoansEntityByStatusAndDeletedIsFalse(loanStatus,pageable);
         if (loansEntities==null) throw new DataNotFoundException("Loans not found!");
-        return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(),loansEntity.getAmount(), loansEntity.getInterestRate(),
-                loansEntity.getStatus(),loansEntity.getDueDate(),modelMapper.map(loansEntity.getUser(), UserResponse.class)));
+        return loanResponsePage(loansEntities);
     }
 
 
@@ -161,7 +159,12 @@ public class LoanService {
         if (loansEntities==null){
             throw new DataNotFoundException("Loans not found!");
         }
+        return loanResponsePage(loansEntities);
+    }
+
+
+    public Page<LoanResponse> loanResponsePage(Page<LoansEntity> loansEntities){
         return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(),loansEntity.getAmount(), loansEntity.getInterestRate(),
-                loansEntity.getStatus(),loansEntity.getDueDate(),modelMapper.map(user, UserResponse.class)));
+                loansEntity.getStatus(),loansEntity.getDueDate(),modelMapper.map(loansEntity.getUser(), UserResponse.class)));
     }
 }

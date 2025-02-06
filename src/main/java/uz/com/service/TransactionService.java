@@ -14,6 +14,7 @@ import uz.com.model.dto.response.TransactionResponse;
 import uz.com.model.entity.AccountsEntity;
 import uz.com.model.entity.TransactionEntity;
 import uz.com.model.entity.UserEntity;
+import uz.com.model.enums.AccountType;
 import uz.com.model.enums.TransactionType;
 import uz.com.repository.AccountRepository;
 import uz.com.repository.TransactionRepository;
@@ -36,6 +37,7 @@ public class TransactionService {
 
 
     public GeneralResponse<TransactionResponse> save(TransactionCreateRequest request, Principal principal) {
+        TransactionType type = TransactionType.valueOf(request.getType().toUpperCase());
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         TransactionEntity transactionEntity = modelMapper.map(request, TransactionEntity.class);
         AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(UUID.fromString(request.getAccountId()));
@@ -44,9 +46,18 @@ public class TransactionService {
         }
         transactionEntity.setAccount(accounts);
         try {
-            transactionEntity.setType(TransactionType.valueOf(request.getType().toUpperCase()));
+            transactionEntity.setType(type);
         } catch (Exception e) {
             throw new DataNotAcceptableException("Invalid transaction type!");
+        }
+        if (type==TransactionType.LOAN && accounts.getType()!= AccountType.LOAN){
+            throw new DataNotAcceptableException("Transaction and account types not suitable!");
+        }
+        if (type==TransactionType.DEPOSIT && accounts.getType()!=AccountType.DEPOSIT){
+            throw new DataNotAcceptableException("Transaction and account types not suitable!");
+        }
+        if ((type==TransactionType.LOAN || type==TransactionType.DEPOSIT) && accounts.getType()==AccountType.MAIN){
+            throw new DataNotAcceptableException("Can not create LOAN or DEPOSIT transaction from MAIN account!");
         }
         if (request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
             throw new DataNotAcceptableException("Bad request! Action not acceptable! Invalid amount!");
@@ -113,20 +124,24 @@ public class TransactionService {
         if (accountId==null && type==null){
             Page<TransactionEntity> transactionEntities = transactionRepository.findAllByDeletedIsFalse(pageable);
             if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
-        return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
-        transactionEntity.getAmount(),transactionEntity.getType(),modelMapper.map(transactionEntity.getAccount(), AccountResponse.class)));
+        return getMap(transactionEntities);
         }
         if (accountId==null){
             TransactionType transactionType = TransactionType.valueOf(type.toUpperCase());
             Page<TransactionEntity> transactionEntities = transactionRepository.findAllByTypeAndDeletedIsFalse(pageable,transactionType);
             if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
-            return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
-                    transactionEntity.getAmount(),transactionEntity.getType(),modelMapper.map(transactionEntity.getAccount(), AccountResponse.class)));
+            return getMap(transactionEntities);
         }
             AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(accountId);
             Page<TransactionEntity> transactionEntities = transactionRepository.findAllByAccountAndDeletedIsFalse(accounts,pageable);
             if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
-            return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
-            transactionEntity.getAmount(),transactionEntity.getType(),modelMapper.map(transactionEntity.getAccount(), AccountResponse.class)));
+            return getMap(transactionEntities);
+    }
+
+
+
+    private Page<TransactionResponse> getMap(Page<TransactionEntity> transactionEntities) {
+        return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
+                transactionEntity.getAmount(), transactionEntity.getType(), modelMapper.map(transactionEntity.getAccount(), AccountResponse.class)));
     }
 }
