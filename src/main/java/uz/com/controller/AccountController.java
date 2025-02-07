@@ -1,6 +1,8 @@
 package uz.com.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,6 +31,13 @@ public class AccountController {
 
 
     @Operation(summary = "Save account",description = "Save account by managers for clients")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",description = "Data created successfully!"),
+            @ApiResponse(responseCode = "404",description = "Data not found!"),
+            @ApiResponse(responseCode = "406",description = "Data not acceptable"),
+            @ApiResponse(responseCode = "500",description = "Internal server error"),
+            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+    })
     @PostMapping("/save")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<GeneralResponse<AccountResponse>> save(@RequestBody AccountCreateRequest request,
@@ -38,6 +47,13 @@ public class AccountController {
 
 
     @Operation(summary = "Get account",description = "Get account through id by users")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "404",description = "Data not found!"),
+            @ApiResponse(responseCode = "406",description = "Data not acceptable"),
+            @ApiResponse(responseCode = "500",description = "Internal server error"),
+            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENTS')")
     public ResponseEntity<GeneralResponse<AccountResponse>> getById(@PathVariable UUID id) {
@@ -46,6 +62,13 @@ public class AccountController {
 
 
     @Operation(summary = "Delete account", description = "Delete account through id by admins")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",description = "Data deleted successfully!"),
+            @ApiResponse(responseCode = "404",description = "Data not found!"),
+            @ApiResponse(responseCode = "406",description = "Data not acceptable"),
+            @ApiResponse(responseCode = "500",description = "Internal server error"),
+            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+    })
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
@@ -55,6 +78,13 @@ public class AccountController {
 
 
     @Operation(summary = "Multi delete",description = "Multi delete accounts through ids by admins")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",description = "Data deleted successfully!"),
+            @ApiResponse(responseCode = "404",description = "Data not found!"),
+            @ApiResponse(responseCode = "406",description = "Data not acceptable"),
+            @ApiResponse(responseCode = "500",description = "Internal server error"),
+            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+    })
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> multiDelete(@RequestBody List<String> ids, Principal principal) {
@@ -63,6 +93,13 @@ public class AccountController {
 
 
     @Operation(summary = "Get all account",description = "Get all default accounts or get all accounts sort by type by admins")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "404",description = "Data not found!"),
+            @ApiResponse(responseCode = "406",description = "Data not acceptable"),
+            @ApiResponse(responseCode = "500",description = "Internal server error"),
+            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+    })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AccountResponse>> getAllAcc(@RequestParam(defaultValue = "0") int page,
@@ -75,6 +112,13 @@ public class AccountController {
 
 
     @Operation(summary = "Get user account",description = "Get principal user's account or get account by userId")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "404",description = "Data not found!"),
+            @ApiResponse(responseCode = "406",description = "Data not acceptable"),
+            @ApiResponse(responseCode = "500",description = "Internal server error"),
+            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+    })
     @GetMapping("/get-user-account")
     public ResponseEntity<Page<AccountResponse>> getUSerAccount(Principal principal,
                                                                 @RequestParam(required = false) UUID userId,
@@ -83,6 +127,5 @@ public class AccountController {
         Pageable pageable = PageRequest.of(page,size);
         return ResponseEntity.ok(accountService.getUserAccount(principal, userId, pageable));
     }
-
 
 }

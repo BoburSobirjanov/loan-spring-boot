@@ -28,17 +28,14 @@ public class AuditLogsEntity {
     String httpMethod;
 
     @Column(nullable = false)
-    String apiEndpoint;
+    String url;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     String request;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     String response;
 
-    @Column(nullable = false)
-    int statusCode;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     UserEntity user;
 }

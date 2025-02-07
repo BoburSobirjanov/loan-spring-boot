@@ -40,9 +40,11 @@ public class AccountService {
         AccountsEntity accounts = accountMapper.toEntity(request);
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(request.getUserId()));
         List<AccountsEntity> accountsEntities = accountRepository.findAllByUserAndDeletedIsFalse(user);
+        if (accountsEntities!=null){
         for (AccountsEntity accountsEntity: accountsEntities) {
             if (accountsEntity.getType().equals(type))
                 throw new DataHasAlreadyExistsException("This type account has already exists in this user!");
+            }
         }
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         if (user == null || !user.getRole().contains(UserRole.CLIENT)) {

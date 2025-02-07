@@ -165,7 +165,7 @@ public class UserController {
 
     @Operation(summary = "Update user", description = "Update user API")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Update data successfully"),
+            @ApiResponse(responseCode = "201", description = "Data updated successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
             @ApiResponse(responseCode = "401", description = "Invalid credentials"),
             @ApiResponse(responseCode = "406", description = "Data not acceptable"),
