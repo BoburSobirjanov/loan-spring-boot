@@ -126,7 +126,8 @@ public class AccountController {
             @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("/get-user-account")
-    public ResponseEntity<Page<AccountResponse>> getUSerAccount(Principal principal,
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<Page<AccountResponse>> getUserAccount(Principal principal,
                                                                 @RequestParam(required = false) UUID userId,
                                                                 @RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size){

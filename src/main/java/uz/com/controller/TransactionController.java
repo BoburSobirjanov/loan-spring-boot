@@ -39,6 +39,7 @@ public class TransactionController {
             @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @PostMapping("/save")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<TransactionResponse>> save(@RequestBody TransactionCreateRequest request,
                                                                      Principal principal) {
         return ResponseEntity.ok(transactionService.save(request, principal));
@@ -53,6 +54,7 @@ public class TransactionController {
             @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("{id}")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<TransactionResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(transactionService.getById(id));
     }
