@@ -36,7 +36,8 @@ public class AccountController {
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @PostMapping("/save")
     @PreAuthorize("hasRole('MANAGER')")
@@ -48,11 +49,12 @@ public class AccountController {
 
     @Operation(summary = "Get account",description = "Get account through id by users")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "200",description = "Get data successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENTS')")
@@ -63,11 +65,12 @@ public class AccountController {
 
     @Operation(summary = "Delete account", description = "Delete account through id by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Data deleted successfully!"),
+            @ApiResponse(responseCode = "200",description = "Data deleted successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasRole('ADMIN')")
@@ -79,11 +82,12 @@ public class AccountController {
 
     @Operation(summary = "Multi delete",description = "Multi delete accounts through ids by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Data deleted successfully!"),
+            @ApiResponse(responseCode = "200",description = "Data deleted successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
@@ -94,11 +98,12 @@ public class AccountController {
 
     @Operation(summary = "Get all account",description = "Get all default accounts or get all accounts sort by type by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "200",description = "Get data successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -113,11 +118,12 @@ public class AccountController {
 
     @Operation(summary = "Get user account",description = "Get principal user's account or get account by userId")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "200",description = "Get data successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("/get-user-account")
     public ResponseEntity<Page<AccountResponse>> getUSerAccount(Principal principal,

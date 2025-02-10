@@ -30,7 +30,7 @@ public class UserController {
 
     @Operation(summary = "Add role", description = "Add client role to user by managers or admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Role added successfully"),
+            @ApiResponse(responseCode = "200", description = "Role added successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid credentials"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
@@ -47,7 +47,7 @@ public class UserController {
 
     @Operation(summary = "Add role",description = "Add manager role to users by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Role added successfully"),
+            @ApiResponse(responseCode = "200", description = "Role added successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid credentials"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
@@ -63,7 +63,7 @@ public class UserController {
 
     @Operation(summary = "Remove role",description = "Remove manager role from users by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Role removed successfully"),
+            @ApiResponse(responseCode = "200", description = "Role removed successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid credentials"),
             @ApiResponse(responseCode = "406", description = "Data not acceptable"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -80,7 +80,7 @@ public class UserController {
 
     @Operation(summary = "Remove role",description = "Remove client role from users by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Role removed successfully"),
+            @ApiResponse(responseCode = "200", description = "Role removed successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid credentials"),
             @ApiResponse(responseCode = "406", description = "Data not acceptable"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -96,9 +96,10 @@ public class UserController {
 
     @Operation(summary = "Get user", description = "Get user by id by admins or managers")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Get data successfully"),
+            @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
@@ -109,9 +110,10 @@ public class UserController {
 
     @Operation(summary = "Delete user",description = "Delete user by id by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Delete data successfully"),
+            @ApiResponse(responseCode = "200", description = "Delete data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @DeleteMapping("/{id}/delete")
     @PreAuthorize("hasRole('ADMIN')")
@@ -123,9 +125,10 @@ public class UserController {
 
     @Operation(summary = "Get all user", description = "Get all default users or get all by role by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Get data successfully"),
+            @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -139,9 +142,10 @@ public class UserController {
 
     @Operation(summary = "Multi delete", description = "Multi delete users by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Delete data successfully"),
+            @ApiResponse(responseCode = "200", description = "Delete data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
@@ -152,9 +156,10 @@ public class UserController {
 
     @Operation(summary = "Get by phone", description = "Get users through their phone number by admins or managers")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Get data successfully"),
+            @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("/get-by-number")
     @PreAuthorize("hasRole('ADMIN' or hasRole('MANAGER'))")
@@ -165,11 +170,12 @@ public class UserController {
 
     @Operation(summary = "Update user", description = "Update user API")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Data updated successfully"),
+            @ApiResponse(responseCode = "200", description = "Data updated successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
             @ApiResponse(responseCode = "401", description = "Invalid credentials"),
             @ApiResponse(responseCode = "406", description = "Data not acceptable"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @PutMapping("/{id}/update")
     public ResponseEntity<GeneralResponse<UserResponse>> update(@PathVariable UUID id,

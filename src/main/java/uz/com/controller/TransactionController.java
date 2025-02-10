@@ -35,7 +35,8 @@ public class TransactionController {
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @PostMapping("/save")
     public ResponseEntity<GeneralResponse<TransactionResponse>> save(@RequestBody TransactionCreateRequest request,
@@ -46,9 +47,10 @@ public class TransactionController {
 
     @Operation(summary = "Get by id", description = "Get transaction through id by users")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "200",description = "Get data successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("{id}")
     public ResponseEntity<GeneralResponse<TransactionResponse>> getById(@PathVariable UUID id) {
@@ -58,11 +60,12 @@ public class TransactionController {
 
     @Operation(summary = "Delete transaction",description = "Delete transaction through id by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Data deleted successfully!"),
+            @ApiResponse(responseCode = "200",description = "Data deleted successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @DeleteMapping("{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -73,11 +76,12 @@ public class TransactionController {
 
     @Operation(summary = "Multi delete",description = "Multi delete transactions through id by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Data deleted successfully!"),
+            @ApiResponse(responseCode = "200",description = "Data deleted successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
@@ -89,11 +93,12 @@ public class TransactionController {
 
     @Operation(summary = "Get all", description = "Get all default transactions or get all sort by account and type")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "200",description = "Get data successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("/get-all")
     @PreAuthorize("hasRole('ADMIN')")
