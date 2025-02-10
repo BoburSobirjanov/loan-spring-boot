@@ -41,6 +41,10 @@ public class AuditLogAspect {
             return joinPoint.proceed();
         }
 
+        if (httpMethod.startsWith("GET")){
+            return joinPoint.proceed();
+        }
+
         UserEntity userEntity = null;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() &&

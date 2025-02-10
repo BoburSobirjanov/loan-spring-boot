@@ -58,6 +58,7 @@ public class LoanController {
             @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("{id}")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<LoanResponse>> getById(@PathVariable UUID id){
         return ResponseEntity.ok(loanService.getById(id));
     }
@@ -148,6 +149,7 @@ public class LoanController {
             @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("/get-my-loans")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<Page<LoanResponse>> getMyLoans(@RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size,
                                                          Principal principal){

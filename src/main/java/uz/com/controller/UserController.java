@@ -3,6 +3,7 @@ package uz.com.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "User controller APIs",description = "User controller APIs for managing users")
 @RequestMapping("/api/v1/users")
 public class UserController {
 
@@ -178,6 +180,7 @@ public class UserController {
             @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @PutMapping("/{id}/update")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<UserResponse>> update(@PathVariable UUID id,
                                                                 @Valid @RequestBody UserCreateRequest request){
         return ResponseEntity.ok(userService.update(id, request));
