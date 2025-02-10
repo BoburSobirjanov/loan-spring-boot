@@ -36,7 +36,8 @@ public class LoanController {
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @PostMapping("/save")
     @PreAuthorize("hasRole('MANAGER')")
@@ -49,11 +50,12 @@ public class LoanController {
 
     @Operation(summary = "Get loan", description = "Get loan through id by users")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "200",description = "Get data successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("{id}")
     public ResponseEntity<GeneralResponse<LoanResponse>> getById(@PathVariable UUID id){
@@ -64,11 +66,12 @@ public class LoanController {
 
     @Operation(summary = "Delete loan",description = "Delete loan through id by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Data deleted successfully!"),
+            @ApiResponse(responseCode = "200",description = "Data deleted successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @DeleteMapping("{id}/delete")
     @PreAuthorize("hasRole('ADMIN')")
@@ -81,11 +84,12 @@ public class LoanController {
 
     @Operation(summary = "Change status", description = "Change loan status by admins or managers")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Data updated successfully!"),
+            @ApiResponse(responseCode = "200",description = "Data updated successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @PutMapping("/{id}/change-status")
     @PreAuthorize("hasRole('MANAGER' OR hasRole('ADMIN'))")
@@ -99,11 +103,12 @@ public class LoanController {
 
     @Operation(summary = "Multi delete",description = "Multi delete loans through id by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Data deleted successfully!"),
+            @ApiResponse(responseCode = "200",description = "Data deleted successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
@@ -115,11 +120,12 @@ public class LoanController {
 
     @Operation(summary = "Get all loans",description = "Get all default loans or get all sort by status by admins")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "200",description = "Get data successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
@@ -134,11 +140,12 @@ public class LoanController {
 
     @Operation(summary = "Get my loans",description = "Get principal user's loans by users")
     @ApiResponses({
-            @ApiResponse(responseCode = "201",description = "Get data successfully!"),
+            @ApiResponse(responseCode = "200",description = "Get data successfully!"),
             @ApiResponse(responseCode = "404",description = "Data not found!"),
             @ApiResponse(responseCode = "406",description = "Data not acceptable"),
             @ApiResponse(responseCode = "500",description = "Internal server error"),
-            @ApiResponse(responseCode = "401",description = "Invalid credentials")
+            @ApiResponse(responseCode = "401",description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400",description = "Bad request")
     })
     @GetMapping("/get-my-loans")
     public ResponseEntity<Page<LoanResponse>> getMyLoans(@RequestParam(defaultValue = "0") int page,

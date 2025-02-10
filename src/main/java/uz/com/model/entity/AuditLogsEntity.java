@@ -33,9 +33,9 @@ public class AuditLogsEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     String request;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT",length = 450)
     String response;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     UserEntity user;
 }

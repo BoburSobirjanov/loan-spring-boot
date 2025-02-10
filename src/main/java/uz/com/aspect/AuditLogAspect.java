@@ -11,12 +11,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import uz.com.exception.DataNotFoundException;
 import uz.com.model.entity.AuditLogsEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.repository.AuditLogsRepository;
 import uz.com.repository.UserRepository;
 
-import java.util.UUID;
 
 @Aspect
 @Component
@@ -30,21 +30,30 @@ public class AuditLogAspect {
     @Around("within(@org.springframework.web.bind.annotation.RestController *)")
     public Object logAudit(ProceedingJoinPoint joinPoint) throws Throwable {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
-            return joinPoint.proceed();
-        }
         HttpServletRequest request = attributes.getRequest();
 
         String requestURI = request.getRequestURI();
         String httpMethod = request.getMethod();
 
+        if (requestURI.startsWith("/swagger") ||
+                requestURI.startsWith("/v3/api-docs") ||
+                requestURI.startsWith("/api/v1/auth")) {
+            return joinPoint.proceed();
+        }
+
         UserEntity userEntity = null;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
+        if (authentication != null && authentication.isAuthenticated() &&
+                !"anonymousUser".equals(authentication.getPrincipal())) {
             Object principal = authentication.getPrincipal();
             if (principal instanceof UserEntity) {
-                UUID userId = ((UserEntity) principal).getId();
-                userEntity = userRepository.findById(userId).orElse(null);
+                userEntity = (UserEntity) principal;
+            } else if (principal instanceof String username) {
+                userEntity = userRepository.findUserEntityByEmailAndDeletedFalse(username);
+            }
+
+            if (userEntity == null) {
+                throw new DataNotFoundException("User not found!");
             }
         }
         String requestData;
