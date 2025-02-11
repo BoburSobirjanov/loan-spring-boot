@@ -23,7 +23,7 @@ public class LoansEntity extends BaseModel {
     BigDecimal amount;
 
     @Column(nullable = false)
-    Integer interestRate;
+    Double interestRate;
 
     @Enumerated(value = EnumType.STRING)
     LoanStatus status;
@@ -32,6 +32,12 @@ public class LoansEntity extends BaseModel {
     LocalDate dueDate;
 
     UUID changeStatusBy;
+
+    BigDecimal payPerMonth;
+
+    BigDecimal paidEver;
+
+    BigDecimal mustBePay;
 
     @ManyToOne
     UserEntity user;

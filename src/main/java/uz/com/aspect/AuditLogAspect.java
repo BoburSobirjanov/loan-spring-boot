@@ -41,7 +41,7 @@ public class AuditLogAspect {
             return joinPoint.proceed();
         }
 
-        if (httpMethod.startsWith("GET")){
+        if (httpMethod.startsWith("GET")) {
             return joinPoint.proceed();
         }
 

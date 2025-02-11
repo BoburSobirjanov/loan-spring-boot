@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "User controller APIs",description = "User controller APIs for managing users")
+@Tag(name = "User controller APIs", description = "User controller APIs for managing users")
 @RequestMapping("/api/v1/users")
 public class UserController {
 
@@ -33,10 +33,12 @@ public class UserController {
     @Operation(summary = "Add role", description = "Add client role to user by managers or admins")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Role added successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid credentials"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400", description = "Bad Request"),
+            @ApiResponse(responseCode = "404", description = "Data not found")
     })
-    @PutMapping("/{id}/add-client-role")
+    @PutMapping("/add-client-role/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> addClientRole(@PathVariable UUID id,
                                                                        @RequestParam String role,
@@ -45,15 +47,15 @@ public class UserController {
     }
 
 
-
-
-    @Operation(summary = "Add role",description = "Add manager role to users by admins")
+    @Operation(summary = "Add role", description = "Add manager role to users by admins")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Role added successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid credentials"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400", description = "Bad Request"),
+            @ApiResponse(responseCode = "404", description = "Data not found")
     })
-    @PutMapping("/{id}/add-manager-role")
+    @PutMapping("/add-manager-role/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> addManagerRole(@PathVariable UUID id,
                                                                         @RequestParam String role,
@@ -62,15 +64,16 @@ public class UserController {
     }
 
 
-
-    @Operation(summary = "Remove role",description = "Remove manager role from users by admins")
+    @Operation(summary = "Remove role", description = "Remove manager role from users by admins")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Role removed successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
             @ApiResponse(responseCode = "406", description = "Data not acceptable"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400", description = "Bad Request"),
+            @ApiResponse(responseCode = "404", description = "Data not found")
     })
-    @PutMapping("/{id}/remove-manager-role")
+    @PutMapping("/remove-manager-role/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> removeManagerRole(@PathVariable UUID id,
                                                                            @RequestParam String role,
@@ -79,15 +82,16 @@ public class UserController {
     }
 
 
-
-    @Operation(summary = "Remove role",description = "Remove client role from users by admins")
+    @Operation(summary = "Remove role", description = "Remove client role from users by admins")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Role removed successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
             @ApiResponse(responseCode = "406", description = "Data not acceptable"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400", description = "Bad Request"),
+            @ApiResponse(responseCode = "404", description = "Data not found")
     })
-    @PutMapping("/{id}/remove-client-role")
+    @PutMapping("/remove-client-role/{id}")
     @PreAuthorize("hasRole('MANAGER') OR hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<UserResponse>> removeClientRole(@PathVariable UUID id,
                                                                           @RequestParam String role,
@@ -101,7 +105,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "400",description = "Bad request")
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
@@ -110,14 +114,14 @@ public class UserController {
     }
 
 
-    @Operation(summary = "Delete user",description = "Delete user by id by admins")
+    @Operation(summary = "Delete user", description = "Delete user by id by admins")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Delete data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "400",description = "Bad request")
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
-    @DeleteMapping("/{id}/delete")
+    @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
                                                              Principal principal) {
@@ -130,7 +134,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "400",description = "Bad request")
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -138,7 +142,7 @@ public class UserController {
                                                      @RequestParam(defaultValue = "10") int size,
                                                      @RequestParam(required = false) String role) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(userService.getAllUsers(pageable,role));
+        return ResponseEntity.ok(userService.getAllUsers(pageable, role));
     }
 
 
@@ -147,7 +151,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Delete data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "400",description = "Bad request")
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @DeleteMapping("/multi-delete")
     @PreAuthorize("hasRole('ADMIN')")
@@ -161,11 +165,11 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "400",description = "Bad request")
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @GetMapping("/get-by-number")
     @PreAuthorize("hasRole('ADMIN' or hasRole('MANAGER'))")
-    public ResponseEntity<GeneralResponse<UserResponse>> getByPhone(@RequestParam String number){
+    public ResponseEntity<GeneralResponse<UserResponse>> getByPhone(@RequestParam String number) {
         return ResponseEntity.ok(userService.getByPhone(number));
     }
 
@@ -177,12 +181,12 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Invalid credentials"),
             @ApiResponse(responseCode = "406", description = "Data not acceptable"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "400",description = "Bad request")
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
-    @PutMapping("/{id}/update")
+    @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<UserResponse>> update(@PathVariable UUID id,
-                                                                @Valid @RequestBody UserCreateRequest request){
+                                                                @Valid @RequestBody UserCreateRequest request) {
         return ResponseEntity.ok(userService.update(id, request));
     }
 

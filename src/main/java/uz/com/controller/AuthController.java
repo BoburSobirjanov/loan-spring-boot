@@ -31,7 +31,6 @@ public class AuthController {
     private final MailSendingService mailSendingService;
 
 
-
     @Operation(summary = "Register a new user", description = "Registers a new user and returns a JWT token")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "User registered successfully"),
@@ -49,20 +48,17 @@ public class AuthController {
     }
 
 
-
-
     @Operation(summary = "User login", description = "Authenticates a user and returns a JWT token")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Login successful"),
             @ApiResponse(responseCode = "401", description = "Invalid credentials"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "400",description = "Bad request")
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @PostMapping("/sign-in")
     public ResponseEntity<GeneralResponse<JwtResponse>> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(userService.login(request));
     }
-
 
 
     @Operation(summary = "Send verification email", description = "Sends a verification email to the user")
@@ -79,13 +75,12 @@ public class AuthController {
     }
 
 
-
     @Operation(summary = "Forgot password", description = "Sends a password reset code to the user's email")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Password reset code sent"),
             @ApiResponse(responseCode = "404", description = "User not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
-            @ApiResponse(responseCode = "400",description = "Bad request")
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
     @PutMapping("/forgot-password")
     public GeneralResponse<String> forgotPassword(

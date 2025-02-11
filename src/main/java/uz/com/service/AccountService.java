@@ -40,10 +40,10 @@ public class AccountService {
         AccountsEntity accounts = accountMapper.toEntity(request);
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(request.getUserId()));
         List<AccountsEntity> accountsEntities = accountRepository.findAllByUserAndDeletedIsFalse(user);
-        if (accountsEntities!=null){
-        for (AccountsEntity accountsEntity: accountsEntities) {
-            if (accountsEntity.getType().equals(type))
-                throw new DataHasAlreadyExistsException("This type account has already exists in this user!");
+        if (accountsEntities != null) {
+            for (AccountsEntity accountsEntity : accountsEntities) {
+                if (accountsEntity.getType().equals(type))
+                    throw new DataHasAlreadyExistsException("This type account has already exists in this user!");
             }
         }
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
@@ -115,16 +115,16 @@ public class AccountService {
     }
 
 
-    public Page<AccountResponse> getAllAccount(Pageable pageable, String accType){
-        if (accType==null){
+    public Page<AccountResponse> getAllAccount(Pageable pageable, String accType) {
+        if (accType == null) {
             Page<AccountsEntity> accountsEntities = accountRepository.findAllAccountEntityAndDeletedFalse(pageable);
-            if (accountsEntities==null) throw new DataNotFoundException("Accounts not found!");
+            if (accountsEntities == null) throw new DataNotFoundException("Accounts not found!");
 
             return accPageResponse(accountsEntities);
         }
         AccountType type = AccountType.valueOf(accType.toUpperCase());
-        Page<AccountsEntity> accountsEntities = accountRepository.findAllByTypeAndDeletedIsFalse(type,pageable);
-        if (accountsEntities==null) throw new DataNotFoundException("Accounts not found!");
+        Page<AccountsEntity> accountsEntities = accountRepository.findAllByTypeAndDeletedIsFalse(type, pageable);
+        if (accountsEntities == null) throw new DataNotFoundException("Accounts not found!");
 
         return accPageResponse(accountsEntities);
     }
@@ -138,14 +138,14 @@ public class AccountService {
             return accPageResponse(accounts);
         }
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-            Page<AccountsEntity> accounts = accountRepository.findAccountsEntityByUser(principalUser, pageable);
-            if (accounts == null) throw new DataNotFoundException("Account not found!");
-            return accPageResponse(accounts);
+        Page<AccountsEntity> accounts = accountRepository.findAccountsEntityByUser(principalUser, pageable);
+        if (accounts == null) throw new DataNotFoundException("Account not found!");
+        return accPageResponse(accounts);
     }
 
 
-    public Page<AccountResponse> accPageResponse(Page<AccountsEntity> accountsEntities){
-        return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(),accountsEntity.getBalance(),
-                accountsEntity.getType(),accountsEntity.getInterestRate(),userMapper.toResponse(accountsEntity.getUser())));
+    public Page<AccountResponse> accPageResponse(Page<AccountsEntity> accountsEntities) {
+        return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(), accountsEntity.getBalance(),
+                accountsEntity.getType(), accountsEntity.getInterestRate(), userMapper.toResponse(accountsEntity.getUser())));
     }
 }

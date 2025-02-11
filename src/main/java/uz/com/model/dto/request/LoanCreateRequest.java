@@ -14,8 +14,8 @@ import java.math.BigDecimal;
 public class LoanCreateRequest {
 
     BigDecimal amount;
-    Integer interestRate;
-    String dueDate;
+    Double interestRate;
+    Integer months;
     String userId;
 
 }
