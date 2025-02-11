@@ -18,7 +18,7 @@ public class LoanResponse {
 
     UUID id;
     BigDecimal amount;
-    Integer interestRate;
+    Double interestRate;
     LoanStatus status;
     LocalDate dueDate;
     UserResponse user;

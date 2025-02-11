@@ -41,7 +41,7 @@ public class UserService {
 
     public GeneralResponse<JwtResponse> save(UserCreateRequest request) {
         boolean b = userRepository.existsUserEntityByEmailAndPhoneAndDeletedIsFalse(request.getEmail(), request.getPhone());
-        if (b){
+        if (b) {
             throw new DataHasAlreadyExistsException("User has already exists!");
         }
         UserEntity user = userMapper.toEntity(request);
@@ -173,16 +173,17 @@ public class UserService {
 
 
     public Page<UserResponse> getAllUsers(Pageable pageable, String role) {
-        if (role==null){
-        Page<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable);
-        if (userEntities == null) throw new DataNotFoundException("Users not found!");
+        if (role == null) {
+            Page<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable);
+            if (userEntities == null) throw new DataNotFoundException("Users not found!");
 
-        return userEntities.map(userEntity -> new UserResponse(userEntity.getId(), userEntity.getFullName(), userEntity.getEmail(), userEntity.getPhone(),
-                userEntity.getAddress(), userEntity.getGender(), userEntity.getRole()));}
+            return userEntities.map(userEntity -> new UserResponse(userEntity.getId(), userEntity.getFullName(), userEntity.getEmail(), userEntity.getPhone(),
+                    userEntity.getAddress(), userEntity.getGender(), userEntity.getRole()));
+        }
 
         UserRole userRole = UserRole.valueOf(role.toUpperCase());
-        Page<UserEntity> userEntities = userRepository.findAllByRole(userRole,pageable);
-        if (userEntities==null) throw new DataNotFoundException("Users not found!");
+        Page<UserEntity> userEntities = userRepository.findAllByRole(userRole, pageable);
+        if (userEntities == null) throw new DataNotFoundException("Users not found!");
         return userEntities.map(userEntity -> new UserResponse(userEntity.getId(), userEntity.getFullName(), userEntity.getEmail(), userEntity.getPhone(),
                 userEntity.getAddress(), userEntity.getGender(), userEntity.getRole()));
     }
@@ -205,9 +206,9 @@ public class UserService {
     }
 
 
-    public GeneralResponse<UserResponse> getByPhone(String number){
+    public GeneralResponse<UserResponse> getByPhone(String number) {
         UserEntity user = userRepository.findUserEntityByPhone(number);
-        if (user==null){
+        if (user == null) {
             throw new DataNotFoundException("User not found!");
         }
         UserResponse userResponse = userMapper.toResponse(user);
@@ -215,17 +216,17 @@ public class UserService {
     }
 
 
-    public GeneralResponse<UserResponse> update(UUID id, UserCreateRequest request){
+    public GeneralResponse<UserResponse> update(UUID id, UserCreateRequest request) {
         UserEntity userEntity = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
-        UserEntity userByPhone= userRepository.findUserEntityByPhone(request.getPhone());
+        UserEntity userByPhone = userRepository.findUserEntityByPhone(request.getPhone());
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(id);
-        if (userEntity!=user && userEntity!=null){
+        if (userEntity != user && userEntity != null) {
             throw new DataHasAlreadyExistsException("Email has already exists!");
         }
-        if (userEntity!=user && userByPhone!=null){
+        if (userEntity != user && userByPhone != null) {
             throw new DataHasAlreadyExistsException("Phone has already exists!");
         }
-        if (user==null) throw new DataNotFoundException("User not found!");
+        if (user == null) throw new DataNotFoundException("User not found!");
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
         user.setAddress(request.getAddress());

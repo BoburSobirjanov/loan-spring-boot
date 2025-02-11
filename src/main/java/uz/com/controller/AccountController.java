@@ -47,6 +47,8 @@ public class AccountController {
     }
 
 
+
+
     @Operation(summary = "Get account",description = "Get account through id by users")
     @ApiResponses({
             @ApiResponse(responseCode = "200",description = "Get data successfully!"),
@@ -72,7 +74,7 @@ public class AccountController {
             @ApiResponse(responseCode = "401",description = "Invalid credentials"),
             @ApiResponse(responseCode = "400",description = "Bad request")
     })
-    @DeleteMapping("/{id}/delete")
+    @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
                                                              Principal principal) {

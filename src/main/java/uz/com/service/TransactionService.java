@@ -51,13 +51,13 @@ public class TransactionService {
         } catch (Exception e) {
             throw new DataNotAcceptableException("Invalid transaction type!");
         }
-        if (type==TransactionType.LOAN && accounts.getType()!= AccountType.LOAN){
+        if (type == TransactionType.LOAN && accounts.getType() != AccountType.LOAN) {
             throw new DataNotAcceptableException("Transaction and account types not suitable!");
         }
-        if (type==TransactionType.DEPOSIT && accounts.getType()!=AccountType.DEPOSIT){
+        if (type == TransactionType.DEPOSIT && accounts.getType() != AccountType.DEPOSIT) {
             throw new DataNotAcceptableException("Transaction and account types not suitable!");
         }
-        if ((type==TransactionType.LOAN || type==TransactionType.DEPOSIT) && accounts.getType()==AccountType.MAIN){
+        if ((type == TransactionType.LOAN || type == TransactionType.DEPOSIT) && accounts.getType() == AccountType.MAIN) {
             throw new DataNotAcceptableException("Can not create LOAN or DEPOSIT transaction from MAIN account!");
         }
         if (request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
@@ -120,25 +120,23 @@ public class TransactionService {
     }
 
 
-
-    public Page<TransactionResponse> getAllTransaction(Pageable pageable,UUID accountId, String type){
-        if (accountId==null && type==null){
+    public Page<TransactionResponse> getAllTransaction(Pageable pageable, UUID accountId, String type) {
+        if (accountId == null && type == null) {
             Page<TransactionEntity> transactionEntities = transactionRepository.findAllByDeletedIsFalse(pageable);
-            if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
-        return getMap(transactionEntities);
+            if (transactionEntities == null) throw new DataNotFoundException("Transactions not found!");
+            return getMap(transactionEntities);
         }
-        if (accountId==null){
+        if (accountId == null) {
             TransactionType transactionType = TransactionType.valueOf(type.toUpperCase());
-            Page<TransactionEntity> transactionEntities = transactionRepository.findAllByTypeAndDeletedIsFalse(pageable,transactionType);
-            if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
+            Page<TransactionEntity> transactionEntities = transactionRepository.findAllByTypeAndDeletedIsFalse(pageable, transactionType);
+            if (transactionEntities == null) throw new DataNotFoundException("Transactions not found!");
             return getMap(transactionEntities);
         }
-            AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(accountId);
-            Page<TransactionEntity> transactionEntities = transactionRepository.findAllByAccountAndDeletedIsFalse(accounts,pageable);
-            if (transactionEntities==null) throw new DataNotFoundException("Transactions not found!");
-            return getMap(transactionEntities);
+        AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(accountId);
+        Page<TransactionEntity> transactionEntities = transactionRepository.findAllByAccountAndDeletedIsFalse(accounts, pageable);
+        if (transactionEntities == null) throw new DataNotFoundException("Transactions not found!");
+        return getMap(transactionEntities);
     }
-
 
 
     private Page<TransactionResponse> getMap(Page<TransactionEntity> transactionEntities) {

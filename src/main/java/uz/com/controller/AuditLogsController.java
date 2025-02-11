@@ -25,13 +25,10 @@ import java.util.UUID;
 public class AuditLogsController {
 
 
-
     private final AuditLogService auditLogService;
 
 
-
-
-    @Operation(summary = "Get audit logs by HTTP Method",description = "Get all audit logs through httpMethod by ADMIN")
+    @Operation(summary = "Get audit logs by HTTP Method", description = "Get all audit logs through httpMethod by ADMIN")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
@@ -43,15 +40,13 @@ public class AuditLogsController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<Page<AuditLogsEntity>>> getByHttpMethod(@RequestParam String method,
                                                                                   @RequestParam(defaultValue = "0") int page,
-                                                                                  @RequestParam(defaultValue = "10") int size){
-        Pageable pageable = PageRequest.of(page,size);
-        return ResponseEntity.ok(auditLogService.getAuditByHttpMethod(method,pageable));
+                                                                                  @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(auditLogService.getAuditByHttpMethod(method, pageable));
     }
 
 
-
-
-    @Operation(summary = "Get audit logs by URI",description = "Get all audit logs through URI by ADMIN")
+    @Operation(summary = "Get audit logs by URI", description = "Get all audit logs through URI by ADMIN")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
@@ -63,13 +58,13 @@ public class AuditLogsController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<Page<AuditLogsEntity>>> getByUrl(@RequestParam String url,
                                                                            @RequestParam(defaultValue = "0") int page,
-                                                                           @RequestParam(defaultValue = "10") int size){
-        Pageable pageable = PageRequest.of(page,size);
-        return ResponseEntity.ok(auditLogService.getAuditsByUrl(url,pageable));
+                                                                           @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(auditLogService.getAuditsByUrl(url, pageable));
     }
 
 
-    @Operation(summary = "Get audit logs by ID",description = "Get audit log through ID by ADMIN")
+    @Operation(summary = "Get audit logs by ID", description = "Get audit log through ID by ADMIN")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
@@ -79,13 +74,12 @@ public class AuditLogsController {
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GeneralResponse<AuditLogsEntity>> getById(@PathVariable UUID id){
+    public ResponseEntity<GeneralResponse<AuditLogsEntity>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(auditLogService.getById(id));
     }
 
 
-
-    @Operation(summary = "Get audit all logs",description = "Get all audit logs by ADMIN")
+    @Operation(summary = "Get audit all logs", description = "Get all audit logs by ADMIN")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Get data successfully"),
             @ApiResponse(responseCode = "404", description = "Data not found"),
@@ -94,9 +88,9 @@ public class AuditLogsController {
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GeneralResponse<Page<AuditLogsEntity>>> getAll( @RequestParam(defaultValue = "0") int page,
-                                                                          @RequestParam(defaultValue = "10") int size){
-        Pageable pageable = PageRequest.of(page,size);
+    public ResponseEntity<GeneralResponse<Page<AuditLogsEntity>>> getAll(@RequestParam(defaultValue = "0") int page,
+                                                                         @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(auditLogService.getAllAudits(pageable));
     }
 }

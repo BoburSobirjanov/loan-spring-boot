@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,12 +56,19 @@ public class LoanService {
             throw new DataNotAcceptableException("Invalid interest rate!");
         }
         loans.setInterestRate(request.getInterestRate());
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-        LocalDate localDate = LocalDate.parse(request.getDueDate(), dateTimeFormatter);
+        LocalDate localDate = LocalDate.now().plusMonths(request.getMonths());
         if (localDate.isBefore(LocalDate.now())) {
             throw new DataNotAcceptableException("Invalid due date time!");
         }
         loans.setDueDate(localDate);
+
+        BigDecimal allMustBePay = request.getAmount().add((request.getAmount().multiply(BigDecimal.valueOf(request.getInterestRate()/100)))
+                .multiply(BigDecimal.valueOf(request.getMonths()/12)));
+
+        BigDecimal payPerMonth = allMustBePay.divide(BigDecimal.valueOf(request.getMonths()));
+        loans.setPayPerMonth(payPerMonth);
+        loans.setMustBePay(allMustBePay);
+        loans.setPaidEver(BigDecimal.ZERO);
         LoansEntity save = loansRepository.save(loans);
         LoanResponse loanResponse = loanMapper.toResponse(save);
 
@@ -70,25 +76,42 @@ public class LoanService {
     }
 
 
-
-    public GeneralResponse<LoanResponse> getById(UUID id){
+    public GeneralResponse<LoanResponse> getById(UUID id) {
         LoansEntity loans = loansRepository.findLoansEntityByIdAndDeletedFalse(id);
-        if (loans==null){
+        if (loans == null) {
             throw new DataNotFoundException("Loan not found!");
         }
         LoanResponse loanResponse = loanMapper.toResponse(loans);
 
-        return GeneralResponse.ok("This is loan!",loanResponse);
+        return GeneralResponse.ok("This is loan!", loanResponse);
     }
 
 
-    public GeneralResponse<String> deleteOne(UUID id, Principal principal){
+    public GeneralResponse<LoanResponse> payForLoan(UUID id, BigDecimal amount) {
         LoansEntity loans = loansRepository.findLoansEntityByIdAndDeletedFalse(id);
-        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        if (loans==null){
+        if (loans == null) {
             throw new DataNotFoundException("Loan not found!");
         }
-        if (loans.getStatus().equals(LoanStatus.ACTIVE) || loans.getStatus().equals(LoanStatus.FREEZE)){
+        if (loans.getMustBePay().compareTo(amount) < 0 || amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new DataNotAcceptableException("Invalid amount!");
+        }
+        loans.setPaidEver(loans.getPaidEver().add(amount));
+        loans.setMustBePay(loans.getMustBePay().subtract(amount));
+        loansRepository.save(loans);
+
+        LoanResponse loanResponse = loanMapper.toResponse(loans);
+        return GeneralResponse.ok("Paid for loan!",loanResponse);
+
+    }
+
+
+    public GeneralResponse<String> deleteOne(UUID id, Principal principal) {
+        LoansEntity loans = loansRepository.findLoansEntityByIdAndDeletedFalse(id);
+        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        if (loans == null) {
+            throw new DataNotFoundException("Loan not found!");
+        }
+        if (loans.getStatus().equals(LoanStatus.ACTIVE) || loans.getStatus().equals(LoanStatus.FREEZE)) {
             throw new DataNotAcceptableException("Can not delete loan! Because loan is not COMPLETED!");
         }
         loans.setDeleted(true);
@@ -96,21 +119,20 @@ public class LoanService {
         loans.setDeletedBy(user.getId());
         loansRepository.save(loans);
 
-        return GeneralResponse.ok("Loan deleted!","DELETED");
+        return GeneralResponse.ok("Loan deleted!", "DELETED");
     }
 
 
-
-    public GeneralResponse<LoanResponse> changeLoanStatus(UUID id, Principal principal, String status){
+    public GeneralResponse<LoanResponse> changeLoanStatus(UUID id, Principal principal, String status) {
         LoansEntity loans = loansRepository.findLoansEntityByIdAndDeletedFalse(id);
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        if (loans==null){
+        if (loans == null) {
             throw new DataNotFoundException("Loan not found!");
         }
         loans.setChangeStatusBy(principalUser.getId());
         try {
             loans.setStatus(LoanStatus.valueOf(status.toUpperCase()));
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new DataNotAcceptableException("Invalid status!");
         }
 
@@ -119,15 +141,14 @@ public class LoanService {
     }
 
 
-
-    public GeneralResponse<String> multiDeleteLoan(List<String> ids, Principal principal){
+    public GeneralResponse<String> multiDeleteLoan(List<String> ids, Principal principal) {
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        for (String id:ids) {
+        for (String id : ids) {
             LoansEntity loans = loansRepository.findLoansEntityByIdAndDeletedFalse(UUID.fromString(id));
-            if (loans==null){
+            if (loans == null) {
                 throw new DataNotFoundException("Loan not found!");
             }
-            if (loans.getStatus().equals(LoanStatus.ACTIVE) || loans.getStatus().equals(LoanStatus.FREEZE)){
+            if (loans.getStatus().equals(LoanStatus.ACTIVE) || loans.getStatus().equals(LoanStatus.FREEZE)) {
                 throw new DataNotAcceptableException("Can not delete loans! Because loans are not COMPLETED!");
             }
             loans.setDeleted(true);
@@ -139,33 +160,31 @@ public class LoanService {
     }
 
 
-    public Page<LoanResponse> getAllLoans(Pageable pageable,String status){
-        if (status==null){
-        Page<LoansEntity> loansEntities = loansRepository.findAllLoansEntity(pageable);
-        if (loansEntities==null) throw new DataNotFoundException("Loans not found!");
-        return loanResponsePage(loansEntities);
+    public Page<LoanResponse> getAllLoans(Pageable pageable, String status) {
+        if (status == null) {
+            Page<LoansEntity> loansEntities = loansRepository.findAllLoansEntity(pageable);
+            if (loansEntities == null) throw new DataNotFoundException("Loans not found!");
+            return loanResponsePage(loansEntities);
         }
         LoanStatus loanStatus = LoanStatus.valueOf(status.toUpperCase());
-        Page<LoansEntity> loansEntities = loansRepository.findLoansEntityByStatusAndDeletedIsFalse(loanStatus,pageable);
-        if (loansEntities==null) throw new DataNotFoundException("Loans not found!");
+        Page<LoansEntity> loansEntities = loansRepository.findLoansEntityByStatusAndDeletedIsFalse(loanStatus, pageable);
+        if (loansEntities == null) throw new DataNotFoundException("Loans not found!");
         return loanResponsePage(loansEntities);
     }
 
 
-
-
-    public Page<LoanResponse> getMyLoans(Pageable pageable , Principal principal){
+    public Page<LoanResponse> getMyLoans(Pageable pageable, Principal principal) {
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        Page<LoansEntity> loansEntities = loansRepository.findAllByUserAndDeletedIsFalse(user,pageable);
-        if (loansEntities==null){
+        Page<LoansEntity> loansEntities = loansRepository.findAllByUserAndDeletedIsFalse(user, pageable);
+        if (loansEntities == null) {
             throw new DataNotFoundException("Loans not found!");
         }
         return loanResponsePage(loansEntities);
     }
 
 
-    public Page<LoanResponse> loanResponsePage(Page<LoansEntity> loansEntities){
-        return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(),loansEntity.getAmount(), loansEntity.getInterestRate(),
-                loansEntity.getStatus(),loansEntity.getDueDate(),userMapper.toResponse(loansEntity.getUser())));
+    public Page<LoanResponse> loanResponsePage(Page<LoansEntity> loansEntities) {
+        return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(), loansEntity.getAmount(), loansEntity.getInterestRate(),
+                loansEntity.getStatus(), loansEntity.getDueDate(), userMapper.toResponse(loansEntity.getUser())));
     }
 }
