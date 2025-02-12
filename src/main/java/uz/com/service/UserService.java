@@ -160,7 +160,7 @@ public class UserService {
     }
 
 
-    public GeneralResponse<String> deleteById(UUID id, Principal principal) {
+    public GeneralResponse<String> deleteUserById(UUID id, Principal principal) {
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(id);
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         if (user == null) {
@@ -201,7 +201,7 @@ public class UserService {
     }
 
 
-    public GeneralResponse<UserResponse> getByPhone(String number) {
+    public GeneralResponse<UserResponse> getUserByPhone(String number) {
         UserEntity user = userRepository.findUserEntityByPhone(number);
         if (user == null) {
             throw new DataNotFoundException("User not found!");
@@ -211,7 +211,7 @@ public class UserService {
     }
 
 
-    public GeneralResponse<UserResponse> update(UUID id, UserCreateRequest request) {
+    public GeneralResponse<UserResponse> updateUserProfile(UUID id, UserCreateRequest request) {
         UserEntity userEntity = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());
         UserEntity userByPhone = userRepository.findUserEntityByPhone(request.getPhone());
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(id);
@@ -239,7 +239,7 @@ public class UserService {
     }
 
 
-    public GeneralResponse<PageResponse<UserResponse>> getAllUsersNew(int page, int size){
+    public GeneralResponse<PageResponse<UserResponse>> getAllUsers(int page, int size){
         Pageable pageable = PageRequest.of(page, size);
         List<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable).getContent();
         int userCount = userRepository.findAllUsersList().size();

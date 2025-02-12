@@ -47,7 +47,7 @@ public class AuditLogService {
     }
 
 
-    public GeneralResponse<AuditLogsEntity> getById(UUID id) {
+    public GeneralResponse<AuditLogsEntity> getAuditLogsById(UUID id) {
         Optional<AuditLogsEntity> auditLogs = auditLogsRepository.findById(id);
         if (auditLogs.isEmpty()) {
             throw new DataNotFoundException("AuditLos not found!");

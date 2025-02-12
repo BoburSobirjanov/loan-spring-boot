@@ -40,7 +40,7 @@ public class TransactionController {
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<TransactionResponse>> save(@RequestBody TransactionCreateRequest request,
                                                                      Principal principal) {
-        return ResponseEntity.ok(transactionService.save(request, principal));
+        return ResponseEntity.ok(transactionService.saveTransaction(request, principal));
     }
 
 
@@ -54,7 +54,7 @@ public class TransactionController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<TransactionResponse>> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(transactionService.getById(id));
+        return ResponseEntity.ok(transactionService.getTransactionById(id));
     }
 
 
@@ -70,7 +70,7 @@ public class TransactionController {
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id, Principal principal) {
-        return ResponseEntity.ok(transactionService.delete(id, principal));
+        return ResponseEntity.ok(transactionService.deleteTransactionById(id, principal));
     }
 
 

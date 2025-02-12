@@ -73,7 +73,7 @@ public class AuditLogsController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<AuditLogsEntity>> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(auditLogService.getById(id));
+        return ResponseEntity.ok(auditLogService.getAuditLogsById(id));
     }
 
 
