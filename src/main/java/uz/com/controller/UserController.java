@@ -126,7 +126,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
                                                              Principal principal) {
-        return ResponseEntity.ok(userService.deleteById(id, principal));
+        return ResponseEntity.ok(userService.deleteUserById(id, principal));
     }
 
 
@@ -171,7 +171,7 @@ public class UserController {
     @GetMapping("/get-by-number")
     @PreAuthorize("hasRole('ADMIN' or hasRole('MANAGER'))")
     public ResponseEntity<GeneralResponse<UserResponse>> getByPhone(@RequestParam String number) {
-        return ResponseEntity.ok(userService.getByPhone(number));
+        return ResponseEntity.ok(userService.getUserByPhone(number));
     }
 
 
@@ -188,7 +188,7 @@ public class UserController {
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<UserResponse>> update(@PathVariable UUID id,
                                                                 @Valid @RequestBody UserCreateRequest request) {
-        return ResponseEntity.ok(userService.update(id, request));
+        return ResponseEntity.ok(userService.updateUserProfile(id, request));
     }
 
     @Operation(summary = "Get all user", description = "Get all default users by admins")
@@ -203,6 +203,6 @@ public class UserController {
     public ResponseEntity<GeneralResponse<PageResponse<UserResponse>>> getAllUsersNew(@RequestParam(required = false,defaultValue = "0")int page,
                                                                                       @RequestParam(required = false,defaultValue = "10")int size){
         if(page != 0) page = page-1;
-        return ResponseEntity.ok(userService.getAllUsersNew(page, size));
+        return ResponseEntity.ok(userService.getAllUsers(page, size));
     }
 }

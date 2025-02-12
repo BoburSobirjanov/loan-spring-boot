@@ -40,7 +40,7 @@ public class AccountController {
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<GeneralResponse<AccountResponse>> save(@RequestBody AccountCreateRequest request,
                                                                  Principal principal) {
-        return ResponseEntity.ok(accountService.save(request, principal));
+        return ResponseEntity.ok(accountService.saveAccountForClients(request, principal));
     }
 
 
@@ -56,7 +56,7 @@ public class AccountController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENTS')")
     public ResponseEntity<GeneralResponse<AccountResponse>> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(accountService.getById(id));
+        return ResponseEntity.ok(accountService.getAccountById(id));
     }
 
 
@@ -73,7 +73,7 @@ public class AccountController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
                                                              Principal principal) {
-        return ResponseEntity.ok(accountService.deleteById(id, principal));
+        return ResponseEntity.ok(accountService.deleteAccountById(id, principal));
     }
 
 

@@ -37,7 +37,7 @@ public class TransactionService {
     private final TransactionMapper transactionMapper;
 
 
-    public GeneralResponse<TransactionResponse> save(TransactionCreateRequest request, Principal principal) {
+    public GeneralResponse<TransactionResponse> saveTransaction(TransactionCreateRequest request, Principal principal) {
         TransactionType type = TransactionType.valueOf(request.getType().toUpperCase());
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         TransactionEntity transactionEntity = transactionMapper.toEntity(request);
@@ -78,7 +78,7 @@ public class TransactionService {
     }
 
 
-    public GeneralResponse<TransactionResponse> getById(UUID id) {
+    public GeneralResponse<TransactionResponse> getTransactionById(UUID id) {
         TransactionEntity transaction = transactionRepository.findTransactionEntityByIdAndDeletedFalse(id);
         if (transaction == null) {
             throw new DataNotFoundException("Transaction not found!");
@@ -88,7 +88,7 @@ public class TransactionService {
     }
 
 
-    public GeneralResponse<String> delete(UUID id, Principal principal) {
+    public GeneralResponse<String> deleteTransactionById(UUID id, Principal principal) {
         TransactionEntity transaction = transactionRepository.findTransactionEntityByIdAndDeletedFalse(id);
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         if (transaction == null) {

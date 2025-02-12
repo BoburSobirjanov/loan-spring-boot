@@ -35,7 +35,7 @@ public class AccountService {
     private final AccountMapper accountMapper;
 
 
-    public GeneralResponse<AccountResponse> save(AccountCreateRequest request, Principal principal) {
+    public GeneralResponse<AccountResponse> saveAccountForClients(AccountCreateRequest request, Principal principal) {
         AccountType type = AccountType.valueOf(request.getType().toUpperCase());
         AccountsEntity accounts = accountMapper.toEntity(request);
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(request.getUserId()));
@@ -72,7 +72,7 @@ public class AccountService {
     }
 
 
-    public GeneralResponse<AccountResponse> getById(UUID id) {
+    public GeneralResponse<AccountResponse> getAccountById(UUID id) {
         AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(id);
         if (accounts == null) {
             throw new DataNotFoundException("Account did not find!");
@@ -83,7 +83,7 @@ public class AccountService {
     }
 
 
-    public GeneralResponse<String> deleteById(UUID id, Principal principal) {
+    public GeneralResponse<String> deleteAccountById(UUID id, Principal principal) {
         AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(id);
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         if (accounts == null) {

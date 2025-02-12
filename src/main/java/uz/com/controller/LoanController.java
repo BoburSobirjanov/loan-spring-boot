@@ -42,7 +42,7 @@ public class LoanController {
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<GeneralResponse<LoanResponse>> save(@RequestBody LoanCreateRequest request,
                                                               Principal principal) {
-        return ResponseEntity.ok(loanService.save(request, principal));
+        return ResponseEntity.ok(loanService.saveLoan(request, principal));
     }
 
 
@@ -58,7 +58,7 @@ public class LoanController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
     public ResponseEntity<GeneralResponse<LoanResponse>> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(loanService.getById(id));
+        return ResponseEntity.ok(loanService.getLoanById(id));
     }
 
 
@@ -75,7 +75,7 @@ public class LoanController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GeneralResponse<String>> deleteOne(@PathVariable UUID id,
                                                              Principal principal) {
-        return ResponseEntity.ok(loanService.deleteOne(id, principal));
+        return ResponseEntity.ok(loanService.deleteLoanById(id, principal));
     }
 
 
@@ -162,6 +162,6 @@ public class LoanController {
     @PutMapping("/pay-for-loan/{id}")
     public ResponseEntity<GeneralResponse<LoanResponse>> payForLoan(@PathVariable UUID id,
                                                                     @RequestParam BigDecimal amount) {
-        return ResponseEntity.ok(loanService.payForLoan(id, amount));
+        return ResponseEntity.ok(loanService.payForLoanById(id, amount));
     }
 }

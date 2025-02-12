@@ -35,7 +35,7 @@ public class LoanService {
     private final LoanMapper loanMapper;
 
 
-    public GeneralResponse<LoanResponse> save(LoanCreateRequest request, Principal principal) {
+    public GeneralResponse<LoanResponse> saveLoan(LoanCreateRequest request, Principal principal) {
         UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         LoansEntity loans = loanMapper.toEntity(request);
         UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(UUID.fromString(request.getUserId()));
@@ -76,7 +76,7 @@ public class LoanService {
     }
 
 
-    public GeneralResponse<LoanResponse> getById(UUID id) {
+    public GeneralResponse<LoanResponse> getLoanById(UUID id) {
         LoansEntity loans = loansRepository.findLoansEntityByIdAndDeletedFalse(id);
         if (loans == null) {
             throw new DataNotFoundException("Loan not found!");
@@ -87,7 +87,7 @@ public class LoanService {
     }
 
 
-    public GeneralResponse<LoanResponse> payForLoan(UUID id, BigDecimal amount) {
+    public GeneralResponse<LoanResponse> payForLoanById(UUID id, BigDecimal amount) {
         LoansEntity loans = loansRepository.findLoansEntityByIdAndDeletedFalse(id);
         if (loans == null) {
             throw new DataNotFoundException("Loan not found!");
@@ -105,7 +105,7 @@ public class LoanService {
     }
 
 
-    public GeneralResponse<String> deleteOne(UUID id, Principal principal) {
+    public GeneralResponse<String> deleteLoanById(UUID id, Principal principal) {
         LoansEntity loans = loansRepository.findLoansEntityByIdAndDeletedFalse(id);
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
         if (loans == null) {
