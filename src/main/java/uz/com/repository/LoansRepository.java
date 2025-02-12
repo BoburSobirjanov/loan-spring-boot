@@ -9,6 +9,7 @@ import uz.com.model.entity.LoansEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.LoanStatus;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -24,5 +25,8 @@ public interface LoansRepository extends JpaRepository<LoansEntity, UUID> {
     Page<LoansEntity> findAllByUserAndDeletedIsFalse(UserEntity user, Pageable pageable);
 
     @Query("select l from loans as l where l.isDeleted=false and l.status=?1")
-    Page<LoansEntity> findLoansEntityByStatusAndDeletedIsFalse(LoanStatus status, Pageable pageable);
+    List<LoansEntity> findLoansEntityByStatusAndDeletedIsFalse(LoanStatus status);
+
+    @Query("select l from loans as l where l.isDeleted=false")
+    List<LoansEntity> findAllLoanEntityList();
 }

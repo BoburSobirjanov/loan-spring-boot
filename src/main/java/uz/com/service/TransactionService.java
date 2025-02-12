@@ -1,15 +1,15 @@
 package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
-import uz.com.mapper.AccountMapper;
 import uz.com.mapper.TransactionMapper;
 import uz.com.model.dto.request.TransactionCreateRequest;
 import uz.com.model.dto.response.GeneralResponse;
+import uz.com.model.dto.response.PageResponse;
 import uz.com.model.dto.response.TransactionResponse;
 import uz.com.model.entity.AccountsEntity;
 import uz.com.model.entity.TransactionEntity;
@@ -23,6 +23,7 @@ import uz.com.repository.UserRepository;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +35,6 @@ public class TransactionService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final TransactionMapper transactionMapper;
-    private final AccountMapper accountMapper;
 
 
     public GeneralResponse<TransactionResponse> save(TransactionCreateRequest request, Principal principal) {
@@ -120,27 +120,57 @@ public class TransactionService {
     }
 
 
-    public Page<TransactionResponse> getAllTransaction(Pageable pageable, UUID accountId, String type) {
+    public GeneralResponse<PageResponse<TransactionResponse>> getAllTransaction(int page, int size, UUID accountId, String type) {
+        Pageable pageable = PageRequest.of(page, size);
         if (accountId == null && type == null) {
-            Page<TransactionEntity> transactionEntities = transactionRepository.findAllByDeletedIsFalse(pageable);
+            List<TransactionEntity> transactionEntities = transactionRepository.findAllByDeletedIsFalse(pageable).getContent();
             if (transactionEntities == null) throw new DataNotFoundException("Transactions not found!");
-            return getMap(transactionEntities);
+            int transactionCount = transactionEntities.size();
+            int pageCount = transactionCount / size;
+            if (transactionCount % size != 0) pageCount++;
+            List<TransactionResponse> transactionResponses = new ArrayList<>();
+            for (TransactionEntity transaction : transactionEntities) {
+                TransactionResponse response = transactionMapper.toResponse(transaction);
+                transactionResponses.add(response);
+            }
+
+            return GeneralResponse.ok("These are transactions", PageResponse.ok(pageCount, transactionResponses));
         }
         if (accountId == null) {
-            TransactionType transactionType = TransactionType.valueOf(type.toUpperCase());
-            Page<TransactionEntity> transactionEntities = transactionRepository.findAllByTypeAndDeletedIsFalse(pageable, transactionType);
-            if (transactionEntities == null) throw new DataNotFoundException("Transactions not found!");
-            return getMap(transactionEntities);
+            return getAllTransactionsByTransactionType(size, type, pageable);
         }
-        AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(accountId);
-        Page<TransactionEntity> transactionEntities = transactionRepository.findAllByAccountAndDeletedIsFalse(accounts, pageable);
-        if (transactionEntities == null) throw new DataNotFoundException("Transactions not found!");
-        return getMap(transactionEntities);
+        return getAllTransactionByAccountId(size, accountId, pageable);
     }
 
+    private GeneralResponse<PageResponse<TransactionResponse>> getAllTransactionsByTransactionType(int size, String type, Pageable pageable) {
+        TransactionType transactionType = TransactionType.valueOf(type.toUpperCase());
+        List<TransactionEntity> transactionEntities = transactionRepository.findAllByTypeAndDeletedIsFalse(pageable, transactionType).getContent();
+        if (transactionEntities == null) throw new DataNotFoundException("Transactions not found!");
+        int transactionCount = transactionEntities.size();
+        int pageCount = transactionCount / size;
+        if (transactionCount % size != 0) pageCount++;
+        List<TransactionResponse> transactionResponses = new ArrayList<>();
+        for (TransactionEntity transaction : transactionEntities) {
+            TransactionResponse response = transactionMapper.toResponse(transaction);
+            transactionResponses.add(response);
+        }
 
-    private Page<TransactionResponse> getMap(Page<TransactionEntity> transactionEntities) {
-        return transactionEntities.map(transactionEntity -> new TransactionResponse(transactionEntity.getId(),
-                transactionEntity.getAmount(), transactionEntity.getType(), accountMapper.toResponse(transactionEntity.getAccount())));
+        return GeneralResponse.ok("These are transactions", PageResponse.ok(pageCount, transactionResponses));
+    }
+
+    private GeneralResponse<PageResponse<TransactionResponse>> getAllTransactionByAccountId(int size, UUID accountId, Pageable pageable) {
+        AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(accountId);
+        List<TransactionEntity> transactionEntities = transactionRepository.findAllByAccountAndDeletedIsFalse(accounts, pageable).getContent();
+        if (transactionEntities == null) throw new DataNotFoundException("Transactions not found!");
+        int transactionCount = transactionEntities.size();
+        int pageCount = transactionCount / size;
+        if (transactionCount % size != 0) pageCount++;
+        List<TransactionResponse> transactionResponses = new ArrayList<>();
+        for (TransactionEntity transaction : transactionEntities) {
+            TransactionResponse response = transactionMapper.toResponse(transaction);
+            transactionResponses.add(response);
+        }
+
+        return GeneralResponse.ok("These are transactions", PageResponse.ok(pageCount, transactionResponses));
     }
 }

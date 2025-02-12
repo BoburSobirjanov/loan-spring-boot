@@ -38,4 +38,6 @@ public class AuditLogsEntity {
 
     @ManyToOne
     UserEntity user;
+
+    String fromIpAddress;
 }

@@ -2,6 +2,7 @@ package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,12 +20,14 @@ import uz.com.model.entity.UserEntity;
 import uz.com.model.entity.Verification;
 import uz.com.model.enums.Gender;
 import uz.com.model.enums.UserRole;
+import uz.com.model.dto.response.PageResponse;
 import uz.com.repository.UserRepository;
 import uz.com.repository.VerificationRepository;
 import uz.com.service.auth.JwtService;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -172,15 +175,7 @@ public class UserService {
     }
 
 
-    public Page<UserResponse> getAllUsers(Pageable pageable, String role) {
-        if (role == null) {
-            Page<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable);
-            if (userEntities == null) throw new DataNotFoundException("Users not found!");
-
-            return userEntities.map(userEntity -> new UserResponse(userEntity.getId(), userEntity.getFullName(), userEntity.getEmail(), userEntity.getPhone(),
-                    userEntity.getAddress(), userEntity.getGender(), userEntity.getRole()));
-        }
-
+    public Page<UserResponse> getAllUsersByRole(Pageable pageable, String role) {
         UserRole userRole = UserRole.valueOf(role.toUpperCase());
         Page<UserEntity> userEntities = userRepository.findAllByRole(userRole, pageable);
         if (userEntities == null) throw new DataNotFoundException("Users not found!");
@@ -241,5 +236,20 @@ public class UserService {
         UserResponse response = userMapper.toResponse(save);
 
         return GeneralResponse.ok("User updated!", response);
+    }
+
+
+    public GeneralResponse<PageResponse<UserResponse>> getAllUsersNew(int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+        List<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable).getContent();
+        int userCount = userRepository.findAllUsersList().size();
+        int pageCount = userCount/size;
+        if (userCount%size!=0) pageCount++;
+        List<UserResponse> userResponses = new ArrayList<>();
+        for (UserEntity user: userEntities) {
+            UserResponse response = userMapper.toResponse(user);
+            userResponses.add(response);
+        }
+        return GeneralResponse.ok("These are users", PageResponse.ok(pageCount,userResponses));
     }
 }

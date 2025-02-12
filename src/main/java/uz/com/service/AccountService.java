@@ -1,17 +1,17 @@
 package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataHasAlreadyExistsException;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
 import uz.com.mapper.AccountMapper;
-import uz.com.mapper.UserMapper;
 import uz.com.model.dto.request.AccountCreateRequest;
 import uz.com.model.dto.response.AccountResponse;
 import uz.com.model.dto.response.GeneralResponse;
+import uz.com.model.dto.response.PageResponse;
 import uz.com.model.entity.AccountsEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.AccountType;
@@ -22,6 +22,7 @@ import uz.com.repository.UserRepository;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +33,6 @@ public class AccountService {
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final AccountMapper accountMapper;
-    private final UserMapper userMapper;
 
 
     public GeneralResponse<AccountResponse> save(AccountCreateRequest request, Principal principal) {
@@ -115,37 +115,62 @@ public class AccountService {
     }
 
 
-    public Page<AccountResponse> getAllAccount(Pageable pageable, String accType) {
+    public GeneralResponse<PageResponse<AccountResponse>> getAllAccount(int page, int size, String accType) {
+        Pageable pageable = PageRequest.of(page,size);
+        List<AccountsEntity> accountsEntities = accountRepository.findAllAccountEntityAndDeletedFalse(pageable).getContent();
         if (accType == null) {
-            Page<AccountsEntity> accountsEntities = accountRepository.findAllAccountEntityAndDeletedFalse(pageable);
+            int accCount = accountsEntities.size();
+            int pageCount = accCount/ size;
+            if (accCount% size !=0) pageCount++;
             if (accountsEntities == null) throw new DataNotFoundException("Accounts not found!");
+            List<AccountResponse> accountResponses = new ArrayList<>();
+            for (AccountsEntity accounts: accountsEntities) {
+                AccountResponse response = accountMapper.toResponse(accounts);
+                accountResponses.add(response);
+            }
 
-            return accPageResponse(accountsEntities);
+            return GeneralResponse.ok("These are accounts",PageResponse.ok(pageCount,accountResponses));
         }
+        return getAllAccountByType(size, accType, pageable);
+    }
+
+    private GeneralResponse<PageResponse<AccountResponse>> getAllAccountByType(int size, String accType, Pageable pageable) {
         AccountType type = AccountType.valueOf(accType.toUpperCase());
-        Page<AccountsEntity> accountsEntities = accountRepository.findAllByTypeAndDeletedIsFalse(type, pageable);
-        if (accountsEntities == null) throw new DataNotFoundException("Accounts not found!");
-
-        return accPageResponse(accountsEntities);
-    }
-
-
-    public Page<AccountResponse> getUserAccount(Principal principal, UUID userId, Pageable pageable) {
-        if (userId != null) {
-            UserEntity user = userRepository.findUserEntityByIdAndDeletedFalse(userId);
-            Page<AccountsEntity> accounts = accountRepository.findAccountsEntityByUser(user, pageable);
-            if (accounts == null) throw new DataNotFoundException("Account not found!");
-            return accPageResponse(accounts);
+        List<AccountsEntity> accountsEntitiesByType = accountRepository.findAllByTypeAndDeletedIsFalse(type, pageable).getContent();
+        if (accountsEntitiesByType == null) throw new DataNotFoundException("Accounts not found!");
+        int accCount = accountsEntitiesByType.size();
+        int pageCount = accCount/ size;
+        if (accCount% size !=0) pageCount++;
+        if (accountsEntitiesByType == null) throw new DataNotFoundException("Accounts not found!");
+        List<AccountResponse> accountResponses = new ArrayList<>();
+        for (AccountsEntity accounts: accountsEntitiesByType) {
+            AccountResponse response = accountMapper.toResponse(accounts);
+            accountResponses.add(response);
         }
-        UserEntity principalUser = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        Page<AccountsEntity> accounts = accountRepository.findAccountsEntityByUser(principalUser, pageable);
-        if (accounts == null) throw new DataNotFoundException("Account not found!");
-        return accPageResponse(accounts);
+        return GeneralResponse.ok("These are accounts", PageResponse.ok(pageCount, accountResponses));
     }
 
 
-    public Page<AccountResponse> accPageResponse(Page<AccountsEntity> accountsEntities) {
-        return accountsEntities.map(accountsEntity -> new AccountResponse(accountsEntity.getId(), accountsEntity.getBalance(),
-                accountsEntity.getType(), accountsEntity.getInterestRate(), userMapper.toResponse(accountsEntity.getUser())));
+    public GeneralResponse<PageResponse<AccountResponse>> getUserAccount(Principal principal, UUID userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page,size);
+        if (userId != null) {
+            return getAllAccountByUserId(userRepository.findUserEntityByIdAndDeletedFalse(userId), pageable, size);
+        }
+        return getAllAccountByUserId(userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName()), pageable, size);
+    }
+
+    private GeneralResponse<PageResponse<AccountResponse>> getAllAccountByUserId(UserEntity userRepository, Pageable pageable, int size) {
+        List<AccountsEntity> accounts = accountRepository.findAccountsEntityByUser(userRepository, pageable).getContent();
+        if (accounts == null) throw new DataNotFoundException("Account not found!");
+        int accCount = accounts.size();
+        int pageCount = accCount / size;
+        if (accCount % size != 0) pageCount++;
+        if (accounts == null) throw new DataNotFoundException("Accounts not found!");
+        List<AccountResponse> accountResponses = new ArrayList<>();
+        for (AccountsEntity account : accounts) {
+            AccountResponse response = accountMapper.toResponse(account);
+            accountResponses.add(response);
+        }
+        return GeneralResponse.ok("These are accounts", PageResponse.ok(pageCount, accountResponses));
     }
 }

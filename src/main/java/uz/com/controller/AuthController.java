@@ -24,7 +24,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Auth controller APIs for register and login", description = "Authentication Controller")
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/brb/auth")
 public class AuthController {
 
     private final UserService userService;

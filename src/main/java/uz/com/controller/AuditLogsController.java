@@ -6,13 +6,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.com.model.dto.response.GeneralResponse;
+import uz.com.model.dto.response.PageResponse;
 import uz.com.model.entity.AuditLogsEntity;
 import uz.com.service.AuditLogService;
 
@@ -21,7 +19,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "AuditLogs controller APIs", description = "AuditLogs controller APIs for managing by ADMINs ")
-@RequestMapping("/api/v1/audit-logs")
+@RequestMapping("/brb/audit-logs")
 public class AuditLogsController {
 
 
@@ -38,11 +36,11 @@ public class AuditLogsController {
     })
     @GetMapping("/get-by-http-method")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GeneralResponse<Page<AuditLogsEntity>>> getByHttpMethod(@RequestParam String method,
-                                                                                  @RequestParam(defaultValue = "0") int page,
-                                                                                  @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(auditLogService.getAuditByHttpMethod(method, pageable));
+    public ResponseEntity<GeneralResponse<PageResponse<AuditLogsEntity>>> getByHttpMethod(@RequestParam String method,
+                                                                                          @RequestParam(defaultValue = "0") int page,
+                                                                                          @RequestParam(defaultValue = "10") int size) {
+        if (page != 0) page = page - 1;
+        return ResponseEntity.ok(auditLogService.getAuditByHttpMethod(method, page, size));
     }
 
 
@@ -56,11 +54,11 @@ public class AuditLogsController {
     })
     @GetMapping("/get-by-url")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GeneralResponse<Page<AuditLogsEntity>>> getByUrl(@RequestParam String url,
-                                                                           @RequestParam(defaultValue = "0") int page,
-                                                                           @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(auditLogService.getAuditsByUrl(url, pageable));
+    public ResponseEntity<GeneralResponse<PageResponse<AuditLogsEntity>>> getByUrl(@RequestParam String url,
+                                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                                   @RequestParam(defaultValue = "10") int size) {
+        if (page != 0) page = page - 1;
+        return ResponseEntity.ok(auditLogService.getAuditsByUrl(url, page, size));
     }
 
 
@@ -88,9 +86,9 @@ public class AuditLogsController {
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<GeneralResponse<Page<AuditLogsEntity>>> getAll(@RequestParam(defaultValue = "0") int page,
-                                                                         @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(auditLogService.getAllAudits(pageable));
+    public ResponseEntity<GeneralResponse<PageResponse<AuditLogsEntity>>> getAll(@RequestParam(defaultValue = "0") int page,
+                                                                                 @RequestParam(defaultValue = "10") int size) {
+        if (page != 0) page = page - 1;
+        return ResponseEntity.ok(auditLogService.getAllAudits(page, size));
     }
 }

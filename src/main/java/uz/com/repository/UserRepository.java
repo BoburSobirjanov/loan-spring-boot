@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.UserRole;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -30,5 +31,8 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM users u WHERE u.email = :email AND u.phone = :phone AND u.isDeleted = false")
     Boolean existsUserEntityByEmailAndPhoneAndDeletedIsFalse(String email, String phone);
+
+    @Query("SELECT u FROM users u WHERE u.isDeleted = false")
+    List<UserEntity> findAllUsersList();
 
 }

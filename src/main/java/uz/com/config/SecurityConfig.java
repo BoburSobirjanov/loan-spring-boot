@@ -28,7 +28,7 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
-    private final String[] permitAll = {"/swagger-ui/**", "/v3/api-docs/**", "/api/v1/auth/**"};
+    private final String[] permitAll = {"/swagger-ui/**", "/v3/api-docs/**", "/brb/auth/**"};
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,9 +47,9 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(List.of("http://locahost:8090/api/v1", "*"));
+        corsConfiguration.setAllowedOrigins(List.of("http://localhost:8090/brb","http://localhost:8091/brb","http://localhost:8092/brb","*"));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-        corsConfiguration.setAllowedHeaders(List.of("http://localhost:8090/api/v1","*"));
+        corsConfiguration.setAllowedHeaders(List.of("http://localhost:8090/brb","http://localhost:8091/brb","http://localhost:8092/brb","*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
