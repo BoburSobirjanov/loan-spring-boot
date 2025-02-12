@@ -31,13 +31,15 @@ public class AuditLogAspect {
     public Object logAudit(ProceedingJoinPoint joinPoint) throws Throwable {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
+        String ip = request.getHeader("X-Forwarded-For");
+        ip = getStringIp(ip, request);
 
         String requestURI = request.getRequestURI();
         String httpMethod = request.getMethod();
 
         if (requestURI.startsWith("/swagger") ||
                 requestURI.startsWith("/v3/api-docs") ||
-                requestURI.startsWith("/api/v1/auth")) {
+                requestURI.startsWith("/brb/auth")) {
             return joinPoint.proceed();
         }
 
@@ -81,8 +83,25 @@ public class AuditLogAspect {
         auditLog.setUser(userEntity);
         auditLog.setRequest(requestData);
         auditLog.setResponse(responseData);
+        auditLog.setFromIpAddress(ip);
         auditLogsRepository.save(auditLog);
 
         return result;
+    }
+
+    private static String getStringIp(String ip, HttpServletRequest request) {
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 }

@@ -1,16 +1,16 @@
 package uz.com.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uz.com.exception.DataNotAcceptableException;
 import uz.com.exception.DataNotFoundException;
 import uz.com.mapper.LoanMapper;
-import uz.com.mapper.UserMapper;
 import uz.com.model.dto.request.LoanCreateRequest;
 import uz.com.model.dto.response.GeneralResponse;
 import uz.com.model.dto.response.LoanResponse;
+import uz.com.model.dto.response.PageResponse;
 import uz.com.model.entity.LoansEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.LoanStatus;
@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +33,6 @@ public class LoanService {
     private final LoansRepository loansRepository;
     private final UserRepository userRepository;
     private final LoanMapper loanMapper;
-    private final UserMapper userMapper;
 
 
     public GeneralResponse<LoanResponse> save(LoanCreateRequest request, Principal principal) {
@@ -65,7 +65,7 @@ public class LoanService {
         BigDecimal allMustBePay = request.getAmount().add((request.getAmount().multiply(BigDecimal.valueOf(request.getInterestRate()/100)))
                 .multiply(BigDecimal.valueOf(request.getMonths()/12)));
 
-        BigDecimal payPerMonth = allMustBePay.divide(BigDecimal.valueOf(request.getMonths()));
+        BigDecimal payPerMonth = BigDecimal.valueOf(allMustBePay.intValue()/(request.getMonths()));
         loans.setPayPerMonth(payPerMonth);
         loans.setMustBePay(allMustBePay);
         loans.setPaidEver(BigDecimal.ZERO);
@@ -160,31 +160,53 @@ public class LoanService {
     }
 
 
-    public Page<LoanResponse> getAllLoans(Pageable pageable, String status) {
+    public GeneralResponse<PageResponse<LoanResponse>> getAllLoans(int page, int size, String status) {
+        Pageable pageable = PageRequest.of(page,size);
         if (status == null) {
-            Page<LoansEntity> loansEntities = loansRepository.findAllLoansEntity(pageable);
+            List<LoansEntity> loansEntities = loansRepository.findAllLoansEntity(pageable).getContent();
             if (loansEntities == null) throw new DataNotFoundException("Loans not found!");
-            return loanResponsePage(loansEntities);
+            int loanCount = loansRepository.findAllLoanEntityList().size();
+            int pageCount = loanCount/size;
+            if (loanCount%size!=0) pageCount++;
+            List<LoanResponse> loanResponse = new ArrayList<>();
+            for (LoansEntity loans: loansEntities) {
+                LoanResponse response = loanMapper.toResponse(loans);
+                loanResponse.add(response);
+            }
+            return GeneralResponse.ok("These are loans", PageResponse.ok(pageCount,loanResponse));
         }
+        return getAllLoansByStatus(size, status);
+    }
+
+    private GeneralResponse<PageResponse<LoanResponse>> getAllLoansByStatus(int size, String status) {
         LoanStatus loanStatus = LoanStatus.valueOf(status.toUpperCase());
-        Page<LoansEntity> loansEntities = loansRepository.findLoansEntityByStatusAndDeletedIsFalse(loanStatus, pageable);
+        List<LoansEntity> loansEntities = loansRepository.findLoansEntityByStatusAndDeletedIsFalse(loanStatus);
         if (loansEntities == null) throw new DataNotFoundException("Loans not found!");
-        return loanResponsePage(loansEntities);
-    }
-
-
-    public Page<LoanResponse> getMyLoans(Pageable pageable, Principal principal) {
-        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
-        Page<LoansEntity> loansEntities = loansRepository.findAllByUserAndDeletedIsFalse(user, pageable);
-        if (loansEntities == null) {
-            throw new DataNotFoundException("Loans not found!");
+        int loanCount = loansEntities.size();
+        int pageCount = loanCount/ size;
+        if (loanCount% size !=0) pageCount++;
+        List<LoanResponse> loanResponse = new ArrayList<>();
+        for (LoansEntity loans: loansEntities) {
+            LoanResponse response = loanMapper.toResponse(loans);
+            loanResponse.add(response);
         }
-        return loanResponsePage(loansEntities);
+        return GeneralResponse.ok("These are loans", PageResponse.ok(pageCount, loanResponse));
     }
 
 
-    public Page<LoanResponse> loanResponsePage(Page<LoansEntity> loansEntities) {
-        return loansEntities.map(loansEntity -> new LoanResponse(loansEntity.getId(), loansEntity.getAmount(), loansEntity.getInterestRate(),
-                loansEntity.getStatus(), loansEntity.getDueDate(), userMapper.toResponse(loansEntity.getUser())));
+    public GeneralResponse<PageResponse<LoanResponse>> getMyLoans(int page,int size, Principal principal) {
+        Pageable pageable = PageRequest.of(page,size);
+        UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        List<LoansEntity> loansEntities = loansRepository.findAllByUserAndDeletedIsFalse(user,pageable).getContent();
+        if (loansEntities == null) throw new DataNotFoundException("Loans not found!");
+        int loanCount = loansEntities.size();
+        int pageCount = loanCount/ size;
+        if (loanCount% size !=0) pageCount++;
+        List<LoanResponse> loanResponse = new ArrayList<>();
+        for (LoansEntity loans: loansEntities) {
+            LoanResponse response = loanMapper.toResponse(loans);
+            loanResponse.add(response);
+        }
+        return GeneralResponse.ok("These are loans", PageResponse.ok(pageCount, loanResponse));
     }
 }

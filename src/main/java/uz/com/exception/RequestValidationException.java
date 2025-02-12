@@ -2,6 +2,7 @@ package uz.com.exception;
 
 import lombok.Getter;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import uz.com.model.dto.request.UserCreateRequest;
 import uz.com.model.dto.response.GeneralResponse;
 import uz.com.model.dto.response.UserResponse;
+import uz.com.model.dto.response.PageResponse;
 import uz.com.service.UserService;
 
 import java.security.Principal;
@@ -24,7 +25,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "User controller APIs", description = "User controller APIs for managing users")
-@RequestMapping("/api/v1/users")
+@RequestMapping("/brb/users")
 public class UserController {
 
     private final UserService userService;
@@ -136,13 +137,13 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "400", description = "Bad request")
     })
-    @GetMapping
+    @GetMapping("/get-all-by-role")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<UserResponse>> getAll(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<UserResponse>> getAllByUserRole(@RequestParam(defaultValue = "0") int page,
                                                      @RequestParam(defaultValue = "10") int size,
-                                                     @RequestParam(required = false) String role) {
+                                                     @RequestParam String role) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(userService.getAllUsers(pageable, role));
+        return ResponseEntity.ok(userService.getAllUsersByRole(pageable, role));
     }
 
 
@@ -190,4 +191,18 @@ public class UserController {
         return ResponseEntity.ok(userService.update(id, request));
     }
 
+    @Operation(summary = "Get all user", description = "Get all default users by admins")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Get data successfully"),
+            @ApiResponse(responseCode = "404", description = "Data not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "400", description = "Bad request")
+    })
+    @GetMapping("/get-all-users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GeneralResponse<PageResponse<UserResponse>>> getAllUsersNew(@RequestParam(required = false,defaultValue = "0")int page,
+                                                                                      @RequestParam(required = false,defaultValue = "10")int size){
+        if(page != 0) page = page-1;
+        return ResponseEntity.ok(userService.getAllUsersNew(page, size));
+    }
 }

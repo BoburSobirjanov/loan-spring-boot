@@ -5,14 +5,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.com.model.dto.request.TransactionCreateRequest;
 import uz.com.model.dto.response.GeneralResponse;
+import uz.com.model.dto.response.PageResponse;
 import uz.com.model.dto.response.TransactionResponse;
 import uz.com.service.TransactionService;
 
@@ -23,7 +21,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Transaction controller APIs for managing transactions", description = "Transaction Controller")
-@RequestMapping("/api/v1/transactions")
+@RequestMapping("/brb/transactions")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -104,11 +102,11 @@ public class TransactionController {
     })
     @GetMapping("/get-all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<TransactionResponse>> getAll(@RequestParam(defaultValue = "0") int page,
-                                                            @RequestParam(defaultValue = "10") int size,
-                                                            @RequestParam(required = false) UUID accountId,
-                                                            @RequestParam(required = false) String type) {
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(transactionService.getAllTransaction(pageable, accountId, type));
+    public ResponseEntity<GeneralResponse<PageResponse<TransactionResponse>>> getAll(@RequestParam(defaultValue = "0") int page,
+                                                                                     @RequestParam(defaultValue = "10") int size,
+                                                                                     @RequestParam(required = false) UUID accountId,
+                                                                                     @RequestParam(required = false) String type) {
+        if (page != 0) page = page - 1;
+        return ResponseEntity.ok(transactionService.getAllTransaction(page, size, accountId, type));
     }
 }

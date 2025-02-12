@@ -5,15 +5,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.com.model.dto.request.LoanCreateRequest;
 import uz.com.model.dto.response.GeneralResponse;
 import uz.com.model.dto.response.LoanResponse;
+import uz.com.model.dto.response.PageResponse;
 import uz.com.service.LoanService;
 
 import java.math.BigDecimal;
@@ -24,7 +22,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Loan Controller APIs for managing loans", description = "Loans Controller")
-@RequestMapping("/api/v1/loans")
+@RequestMapping("/brb/loans")
 public class LoanController {
 
 
@@ -126,11 +124,11 @@ public class LoanController {
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<Page<LoanResponse>> getAllLoans(@RequestParam(defaultValue = "0") int page,
-                                                          @RequestParam(defaultValue = "10") int size,
-                                                          @RequestParam(required = false) String status) {
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(loanService.getAllLoans(pageable, status));
+    public ResponseEntity<GeneralResponse<PageResponse<LoanResponse>>> getAllLoans(@RequestParam(required = false,defaultValue = "0") int page,
+                                                                  @RequestParam(required = false,defaultValue = "10") int size,
+                                                                  @RequestParam(required = false) String status) {
+        if(page != 0) page = page-1;
+        return ResponseEntity.ok(loanService.getAllLoans(page,size, status));
     }
 
 
@@ -145,11 +143,11 @@ public class LoanController {
     })
     @GetMapping("/get-my-loans")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<Page<LoanResponse>> getMyLoans(@RequestParam(defaultValue = "0") int page,
-                                                         @RequestParam(defaultValue = "10") int size,
-                                                         Principal principal) {
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(loanService.getMyLoans(pageable, principal));
+    public ResponseEntity<GeneralResponse<PageResponse<LoanResponse>>> getMyLoans(@RequestParam(defaultValue = "0") int page,
+                                                                                  @RequestParam(defaultValue = "10") int size,
+                                                                                  Principal principal) {
+        if(page != 0) page = page-1;
+        return ResponseEntity.ok(loanService.getMyLoans(page,size, principal));
     }
 
 

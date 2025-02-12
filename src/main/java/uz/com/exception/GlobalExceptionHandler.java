@@ -1,4 +1,4 @@
-package uz.com.config;
+package uz.com.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
