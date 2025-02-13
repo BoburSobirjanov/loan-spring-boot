@@ -1,5 +1,11 @@
 server:
   port: 8091
+  address: 0.0.0.0
+
+allowed:
+  origins: http://localhost:8091
+  description: Prod server
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver

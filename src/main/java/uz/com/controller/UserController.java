@@ -26,6 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "User controller APIs", description = "User controller APIs for managing users")
 @RequestMapping("/brb/users")
+@CrossOrigin
 public class UserController {
 
     private final UserService userService;

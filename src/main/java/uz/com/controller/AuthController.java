@@ -25,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Auth controller APIs for register and login", description = "Authentication Controller")
 @RequestMapping("/brb/auth")
+@CrossOrigin
 public class AuthController {
 
     private final UserService userService;

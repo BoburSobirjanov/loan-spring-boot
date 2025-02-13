@@ -22,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Account controller APIs for managing", description = "Account Controller")
 @RequestMapping("/brb/accounts")
+@CrossOrigin
 public class AccountController {
 
     private final AccountService accountService;
