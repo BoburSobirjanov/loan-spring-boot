@@ -20,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "AuditLogs controller APIs", description = "AuditLogs controller APIs for managing by ADMINs ")
 @RequestMapping("/brb/audit-logs")
+@CrossOrigin
 public class AuditLogsController {
 
 

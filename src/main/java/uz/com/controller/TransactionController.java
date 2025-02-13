@@ -22,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Transaction controller APIs for managing transactions", description = "Transaction Controller")
 @RequestMapping("/brb/transactions")
+@CrossOrigin
 public class TransactionController {
 
     private final TransactionService transactionService;

@@ -1,5 +1,11 @@
 server:
   port: 8090
+  address: localhost
+
+allowed:
+  origins: http://localhost:8090
+  description: Dev server
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -17,6 +23,7 @@ spring:
   application:
     name: LOAN-MANAGEMENT-SYSTEM-DEV
     XApiKey: dev123
+
   mail:
     host: smtp.gmail.com
     port: 587

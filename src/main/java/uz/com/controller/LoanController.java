@@ -23,6 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Loan Controller APIs for managing loans", description = "Loans Controller")
 @RequestMapping("/brb/loans")
+@CrossOrigin
 public class LoanController {
 
 

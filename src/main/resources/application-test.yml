@@ -1,5 +1,11 @@
 server:
   port: 8092
+  address: localhost
+
+allowed:
+  origins: http://localhost:8092
+  description: Test server
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
