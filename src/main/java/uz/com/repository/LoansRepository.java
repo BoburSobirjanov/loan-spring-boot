@@ -27,6 +27,9 @@ public interface LoansRepository extends JpaRepository<LoansEntity, UUID> {
     @Query("select l from loans as l where l.isDeleted=false and l.status=?1")
     List<LoansEntity> findLoansEntityByStatusAndDeletedIsFalse(LoanStatus status);
 
+    @Query("select l from loans as l where l.isDeleted=false and l.user=?1 and (l.status='ACTIVE' OR l.status='FREEZE')")
+    List<LoansEntity> findAllLoanEntityByUserAndStatus(UserEntity user);
+
     @Query("select l from loans as l where l.isDeleted=false")
     List<LoansEntity> findAllLoanEntityList();
 }

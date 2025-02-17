@@ -239,17 +239,17 @@ public class UserService {
     }
 
 
-    public GeneralResponse<PageResponse<UserResponse>> getAllUsers(int page, int size){
+    public GeneralResponse<PageResponse<UserResponse>> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         List<UserEntity> userEntities = userRepository.findAllByDeletedFalse(pageable).getContent();
         int userCount = userRepository.findAllUsersList().size();
-        int pageCount = userCount/size;
-        if (userCount%size!=0) pageCount++;
+        int pageCount = userCount / size;
+        if (userCount % size != 0) pageCount++;
         List<UserResponse> userResponses = new ArrayList<>();
-        for (UserEntity user: userEntities) {
+        for (UserEntity user : userEntities) {
             UserResponse response = userMapper.toResponse(user);
             userResponses.add(response);
         }
-        return GeneralResponse.ok("These are users", PageResponse.ok(pageCount,userResponses));
+        return GeneralResponse.ok("These are users", PageResponse.ok(pageCount, userResponses));
     }
 }

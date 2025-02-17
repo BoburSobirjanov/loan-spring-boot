@@ -125,11 +125,11 @@ public class LoanController {
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<GeneralResponse<PageResponse<LoanResponse>>> getAllLoans(@RequestParam(required = false,defaultValue = "0") int page,
-                                                                  @RequestParam(required = false,defaultValue = "10") int size,
-                                                                  @RequestParam(required = false) String status) {
-        if(page != 0) page = page-1;
-        return ResponseEntity.ok(loanService.getAllLoans(page,size, status));
+    public ResponseEntity<GeneralResponse<PageResponse<LoanResponse>>> getAllLoans(@RequestParam(required = false, defaultValue = "0") int page,
+                                                                                   @RequestParam(required = false, defaultValue = "10") int size,
+                                                                                   @RequestParam(required = false) String status) {
+        if (page != 0) page = page - 1;
+        return ResponseEntity.ok(loanService.getAllLoans(page, size, status));
     }
 
 
@@ -147,8 +147,8 @@ public class LoanController {
     public ResponseEntity<GeneralResponse<PageResponse<LoanResponse>>> getMyLoans(@RequestParam(defaultValue = "0") int page,
                                                                                   @RequestParam(defaultValue = "10") int size,
                                                                                   Principal principal) {
-        if(page != 0) page = page-1;
-        return ResponseEntity.ok(loanService.getMyLoans(page,size, principal));
+        if (page != 0) page = page - 1;
+        return ResponseEntity.ok(loanService.getMyLoans(page, size, principal));
     }
 
 
@@ -161,8 +161,24 @@ public class LoanController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/pay-for-loan/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','CLIENT','MANAGER')")
     public ResponseEntity<GeneralResponse<LoanResponse>> payForLoan(@PathVariable UUID id,
                                                                     @RequestParam BigDecimal amount) {
         return ResponseEntity.ok(loanService.payForLoanById(id, amount));
     }
+
+
+    @Operation(summary = "Get my debts", description = "Get all my ACTIVE and FREEZE loans' debts")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Get data successfully"),
+            @ApiResponse(responseCode = "404", description = "Data not found"),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping("/get-all-debt")
+    @PreAuthorize("hasAnyRole('ADMIN','CLIENT','MANAGER')")
+    public ResponseEntity<GeneralResponse<BigDecimal>> getAllMyDebts(Principal principal) {
+        return ResponseEntity.ok(loanService.getMyAllActiveAndFreezeLoansAmount(principal));
+    }
+
 }

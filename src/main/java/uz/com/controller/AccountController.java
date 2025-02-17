@@ -14,6 +14,7 @@ import uz.com.model.dto.response.GeneralResponse;
 import uz.com.model.dto.response.PageResponse;
 import uz.com.service.AccountService;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
@@ -132,4 +133,19 @@ public class AccountController {
         return ResponseEntity.ok(accountService.getUserAccount(principal, userId, page, size));
     }
 
+    @Operation(summary = "Fill balance", description = "Fill account balance")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Put data successfully!"),
+            @ApiResponse(responseCode = "404", description = "Data not found!"),
+            @ApiResponse(responseCode = "406", description = "Data not acceptable"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400", description = "Bad request")
+    })
+    @PutMapping("/fill-balance/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','CLIENT','MANAGER')")
+    public ResponseEntity<GeneralResponse<AccountResponse>> fillBalance(@PathVariable UUID id,
+                                                                        @RequestParam BigDecimal amount) {
+        return ResponseEntity.ok(accountService.fillAccountBalance(id, amount));
+    }
 }
