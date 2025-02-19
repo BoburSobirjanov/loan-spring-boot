@@ -15,6 +15,7 @@ import uz.com.model.entity.LoansEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.LoanStatus;
 import uz.com.model.enums.UserRole;
+import uz.com.model.enums.UserStep;
 import uz.com.repository.LoansRepository;
 import uz.com.repository.UserRepository;
 
@@ -50,6 +51,8 @@ public class LoanService {
         }
         loans.setAmount(request.getAmount());
         loans.setUser(user);
+        user.setStep(UserStep.LOAN_CREATE);
+        userRepository.save(user);
         loans.setCreatedBy(principalUser.getId());
         loans.setStatus(LoanStatus.ACTIVE);
         if (request.getInterestRate() < 0 || request.getInterestRate() > 100) {

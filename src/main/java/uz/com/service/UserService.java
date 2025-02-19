@@ -21,6 +21,7 @@ import uz.com.model.entity.Verification;
 import uz.com.model.enums.Gender;
 import uz.com.model.enums.UserRole;
 import uz.com.model.dto.response.PageResponse;
+import uz.com.model.enums.UserStep;
 import uz.com.repository.UserRepository;
 import uz.com.repository.VerificationRepository;
 import uz.com.service.auth.JwtService;
@@ -54,6 +55,7 @@ public class UserService {
         user.setAddress(request.getAddress());
         user.setPhone(request.getPhone());
         user.setFullName(request.getFullName());
+        user.setStep(UserStep.REGISTRATION);
         try {
             user.setGender(Gender.valueOf(request.getGender().toUpperCase()));
         } catch (Exception e) {
@@ -140,6 +142,7 @@ public class UserService {
         Verification verification = verificationRepository.findByUserEmailAndCode(userEntity.getId(), request.getCode());
         if (!verification.getCode().equals(request.getCode()) ||
                 verification.getCreatedAt().plusMinutes(5).isBefore(LocalDateTime.now())) {
+            verificationRepository.delete(verification);
             throw new DataNotAcceptableException("Verification code is incorrect or expired! Please, try again later!");
         }
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(request.getEmail());

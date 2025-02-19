@@ -16,6 +16,7 @@ import uz.com.model.entity.AccountsEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.AccountType;
 import uz.com.model.enums.UserRole;
+import uz.com.model.enums.UserStep;
 import uz.com.repository.AccountRepository;
 import uz.com.repository.UserRepository;
 
@@ -60,6 +61,8 @@ public class AccountService {
             throw new DataNotAcceptableException("Wrong account type!");
         }
         accounts.setUser(user);
+        user.setStep(UserStep.ACCOUNT_CREATE);
+        userRepository.save(user);
         accounts.setCreatedBy(principalUser.getId());
         if (request.getBalance().compareTo(BigDecimal.ZERO) < 0) {
             throw new DataNotAcceptableException("Invalid balance!");
