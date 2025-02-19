@@ -16,6 +16,7 @@ import uz.com.model.entity.TransactionEntity;
 import uz.com.model.entity.UserEntity;
 import uz.com.model.enums.AccountType;
 import uz.com.model.enums.TransactionType;
+import uz.com.model.enums.UserStep;
 import uz.com.repository.AccountRepository;
 import uz.com.repository.TransactionRepository;
 import uz.com.repository.UserRepository;
@@ -40,6 +41,8 @@ public class TransactionService {
     public GeneralResponse<TransactionResponse> saveTransaction(TransactionCreateRequest request, Principal principal) {
         TransactionType type = TransactionType.valueOf(request.getType().toUpperCase());
         UserEntity user = userRepository.findUserEntityByEmailAndDeletedFalse(principal.getName());
+        user.setStep(UserStep.TRANSACTION_CREATE);
+        userRepository.save(user);
         TransactionEntity transactionEntity = transactionMapper.toEntity(request);
         AccountsEntity accounts = accountRepository.findAccountsEntityByIdAndDeletedFalse(UUID.fromString(request.getAccountId()));
         if (accounts == null) {

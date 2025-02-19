@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import uz.com.model.BaseModel;
 import uz.com.model.enums.Gender;
 import uz.com.model.enums.UserRole;
+import uz.com.model.enums.UserStep;
 
 import java.util.*;
 
@@ -58,6 +59,9 @@ public class UserEntity extends BaseModel implements UserDetails {
     String address;
 
     UUID changeRoleBy;
+
+    @Enumerated(EnumType.STRING)
+    UserStep step;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
